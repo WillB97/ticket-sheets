@@ -1,0 +1,25 @@
+<div class="table-responsive">
+    <table class="table table-bordered table-hover table-sm">
+        <thead>
+            <tr>
+            {% for label in header %}
+                <th class="text-center" scope="col">{{ label }}</th>
+            {% endfor %}
+            </tr>
+        </thead>
+        <tbody>
+        {% for row in bookings %}
+            <tr>
+            {% if row['booking_type'] == 'date' %}
+                <td colspan="{{columns}}" class="px-5"><b>{{ row['date'] }}</b></td>
+            {% else %}
+                {% for label in header %}
+                <td class="text-{{ align[label] }}">{{ row['booking'][label] }}</td>
+                {% endfor %}
+            {% endif %}
+            <!-- TODO per row edit/delete button (JS only) (d-print-none) -->
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+</div>
