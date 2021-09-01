@@ -5,6 +5,7 @@
             {% for label in header %}
                 <th class="text-center" scope="col">{{ label }}</th>
             {% endfor %}
+                <th class="d-print-none"></th>
             </tr>
         </thead>
         <tbody>
@@ -17,7 +18,9 @@
                 <td class="text-{{ align[label] }}">{{ row['booking'][label] }}</td>
                 {% endfor %}
             {% endif %}
-            <!-- TODO per row edit/delete button (JS only) (d-print-none) -->
+                <td class="text-center d-print-none">
+                    <button type="button" class="btn btn-warning" onclick="$(this).closest('tr').remove();">Hide</button>
+                </td>
             </tr>
         {% endfor %}
         </tbody>
