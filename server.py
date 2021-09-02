@@ -3,7 +3,7 @@ import csv
 import json
 import requests
 from io import TextIOWrapper
-from flask import Flask, Markup, url_for, request, redirect, render_template
+from flask import Flask, Markup, request, redirect, render_template
 from datetime import datetime
 
 import parse_ticket_sheet
@@ -193,7 +193,7 @@ def update_config():
     OLD_ORDER_DATE = request.form.get('filterDate', '')
 
     save_config()
-    return redirect(url_for('ticket_sheet'))
+    return redirect(request.referrer)
 
 
 def save_config():
