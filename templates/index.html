@@ -51,6 +51,10 @@
 </script>
 <hr>
 <button type="button" class="btn btn-success btn-block btn-lg" onclick="window.print()">Print this page</button>
+
+{% if csv_name %}
+    <h5 style="text-align: center;">Displaying orders from: <pre>{{csv_name}}</pre></h5>
+{% endif %}
 {% endblock %}
 
 {% block content %}

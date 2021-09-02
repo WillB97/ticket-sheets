@@ -92,7 +92,7 @@ def prepare_booking_table_values(processed_bookings, header):
     return rendered_bookings
 
 
-def render_order_table(orders):
+def render_order_table(orders, csv_name=None):
     if not orders:
         return render_tickets_error("No Ticket Data Found")
 
@@ -112,7 +112,8 @@ def render_order_table(orders):
             'filter': FILTER_STRING,
             'hideOld': HIDE_OLD_ORDERS,
             'old_date': OLD_ORDER_DATE,
-        }
+        },
+        csv_name=csv_name
     )
 
 
@@ -178,7 +179,7 @@ def uploaded_tickets():
 
     data_list = list(csv.reader(csv_str.splitlines(keepends=True), delimiter=','))
 
-    return render_order_table(data_list)
+    return render_order_table(data_list, f.filename)
 
 
 @app.route('/config', methods=['POST'])
