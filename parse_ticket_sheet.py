@@ -88,11 +88,17 @@ def date_sort_item(date_str: str) -> datetime:
 
 def sort_bookings(bookings: List[List[str]], input_columns: List[str]) -> List[List[str]]:
     for sort_column, direction in column_sorts.items():
-        sort_index = input_columns.index(sort_column)
+        try:
+            sort_index = input_columns.index(sort_column)
+        except ValueError:
+            # Skip sorts by absent columns
+            continue
+
         if direction == 'DATE':
             bookings.sort(key=lambda x: date_sort_item(x[sort_index]))
         else:
             bookings.sort(reverse=(direction == 'DESC'), key=lambda x: x[sort_index])
+
     return bookings
 
 
