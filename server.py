@@ -131,9 +131,6 @@ def ticket_sheet():
     parse_ticket_sheet.table_configuration = table_configuration
     parse_ticket_sheet.BOOKING_FILTER_STRING = FILTER_STRING
 
-    # with open(TICKET_DUMP_FILE, 'r', errors='ignore') as f:
-    #     data_list = list(csv.reader(f, delimiter=','))
-
     r = requests.get(CSV_URL)
 
     if r.status_code != 200:
