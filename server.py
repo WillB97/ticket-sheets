@@ -148,6 +148,9 @@ def ticket_sheet():
     if r.status_code != 200:
         return render_tickets_error("Failed to fetch CSV data", err_str=f"Error code: {r.status_code}")
 
+    if r.headers['Content-Type'].find('text/csv') == -1:
+        return render_tickets_error("Retrieved data was not a CSV", err_str="Check the CSV URL.")
+
     data_list = list(csv.reader(r.text.splitlines(keepends=True), delimiter=','))
 
     return render_order_table(data_list)
