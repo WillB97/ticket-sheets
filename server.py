@@ -153,6 +153,20 @@ def ticket_sheet():
     return render_order_table(data_list)
 
 
+@app.route('/manual', methods=['GET'])
+def prepare_upload():
+    return render_template(
+        'index.html',
+        config={
+            'csv_url': CSV_URL,
+            'filter': FILTER_STRING,
+            'hideOld': HIDE_OLD_ORDERS,
+            'old_date': OLD_ORDER_DATE,
+        },
+        error="Please upload a CSV"
+    )
+
+
 @app.route('/manual', methods=['POST'])
 def uploaded_tickets():
     # Setup column layout & filter
