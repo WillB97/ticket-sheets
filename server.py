@@ -3,7 +3,7 @@ import csv
 import json
 import requests
 from io import TextIOWrapper
-from flask import Flask, Markup, request, redirect, render_template
+from flask import Flask, Markup, url_for, request, redirect, render_template
 from datetime import datetime
 
 import parse_ticket_sheet
@@ -131,7 +131,7 @@ def render_tickets_error(error, err_str=None):
     )
 
 
-@app.route('/')
+@app.route('/auto')
 def ticket_sheet():
     # Setup column layout & filter
     parse_ticket_sheet.table_configuration = table_configuration
@@ -154,6 +154,11 @@ def ticket_sheet():
     data_list = list(csv.reader(r.text.splitlines(keepends=True), delimiter=','))
 
     return render_order_table(data_list)
+
+
+@app.route('/')
+def root_redirect():
+    return redirect(url_for('prepare_upload'))
 
 
 @app.route('/manual', methods=['GET'])
