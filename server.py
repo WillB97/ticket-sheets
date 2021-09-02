@@ -94,7 +94,16 @@ def prepare_booking_table_values(processed_bookings, header):
 
 def render_order_table(orders):
     if not orders:
-        return "<p>No Ticket Data Found!</p>"
+        return render_template(
+            'index.html',
+            config={
+                'csv_url': CSV_URL,
+                'filter': FILTER_STRING,
+                'hideOld': HIDE_OLD_ORDERS,
+                'old_date': OLD_ORDER_DATE,
+            },
+            error="No Ticket Data Found"
+        )
 
     header = [column[1] for column in parse_ticket_sheet.table_configuration]
 
@@ -128,7 +137,16 @@ def ticket_sheet():
     r = requests.get(CSV_URL)
 
     if r.status_code != 200:
-        return "<p>Failed to fetch CSV data</p>"
+        return render_template(
+            'index.html',
+            config={
+                'csv_url': CSV_URL,
+                'filter': FILTER_STRING,
+                'hideOld': HIDE_OLD_ORDERS,
+                'old_date': OLD_ORDER_DATE,
+            },
+            error="Failed to fetch CSV data"
+        )
 
     data_list = list(csv.reader(r.text.splitlines(keepends=True), delimiter=','))
 
