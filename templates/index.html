@@ -55,8 +55,13 @@
 
 {% block content %}
 {% if error %}
-<p>{{error}}</p>
+<div class="alert alert-danger">
+    <h4>{{error}}</h4>
+    {% if error_string %}
+        <p>{{error_string}}</p>
+    {% endif %}
+</div>
 {% else %}
-{% include "ticket_table.html" %}
+    {% include "ticket_table.html" %}
 {% endif %}
 {% endblock %}

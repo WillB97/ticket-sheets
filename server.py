@@ -94,16 +94,7 @@ def prepare_booking_table_values(processed_bookings, header):
 
 def render_order_table(orders):
     if not orders:
-        return render_template(
-            'index.html',
-            config={
-                'csv_url': CSV_URL,
-                'filter': FILTER_STRING,
-                'hideOld': HIDE_OLD_ORDERS,
-                'old_date': OLD_ORDER_DATE,
-            },
-            error="No Ticket Data Found"
-        )
+        return render_tickets_error("No Ticket Data Found")
 
     header = [column[1] for column in parse_ticket_sheet.table_configuration]
 
@@ -125,25 +116,36 @@ def render_order_table(orders):
     )
 
 
+def render_tickets_error(error, err_str=None):
+    return render_template(
+        'index.html',
+        config={
+            'csv_url': CSV_URL,
+            'filter': FILTER_STRING,
+            'hideOld': HIDE_OLD_ORDERS,
+            'old_date': OLD_ORDER_DATE,
+        },
+        error=error,
+        error_string=err_str
+    )
+
+
 @app.route('/')
 def ticket_sheet():
     # Setup column layout & filter
     parse_ticket_sheet.table_configuration = table_configuration
     parse_ticket_sheet.BOOKING_FILTER_STRING = FILTER_STRING
 
-    r = requests.get(CSV_URL)
+    try:
+        r = requests.get(CSV_URL, timeout=10)
+    except (requests.exceptions.Timeout, requests.exceptions.ConnectionError) as e:
+        return render_tickets_error("Failed to fetch CSV data", err_str=e)
+
+    except requests.exceptions.RequestException as e:
+        return render_tickets_error("An error occured while fetching CSV data", err_str=e)
 
     if r.status_code != 200:
-        return render_template(
-            'index.html',
-            config={
-                'csv_url': CSV_URL,
-                'filter': FILTER_STRING,
-                'hideOld': HIDE_OLD_ORDERS,
-                'old_date': OLD_ORDER_DATE,
-            },
-            error="Failed to fetch CSV data"
-        )
+        return render_tickets_error("Failed to fetch CSV data", err_str=f"Error code: {r.status_code}")
 
     data_list = list(csv.reader(r.text.splitlines(keepends=True), delimiter=','))
 
