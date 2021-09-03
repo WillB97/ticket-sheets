@@ -92,7 +92,7 @@ def prepare_booking_table_values(processed_bookings, header):
     return rendered_bookings
 
 
-def render_order_table(orders, csv_name=None, csv_data=''):
+def render_order_table(orders, csv_name=None, csv_data='', fetch_date=None):
     if not orders:
         return render_tickets_error("No Ticket Data Found")
 
@@ -115,6 +115,7 @@ def render_order_table(orders, csv_name=None, csv_data=''):
         },
         csv_name=csv_name,
         csv_data=csv_data,
+        fetch_date=fetch_date,
     )
 
 
@@ -154,7 +155,7 @@ def ticket_sheet():
 
     data_list = list(csv.reader(r.text.splitlines(keepends=True), delimiter=','))
 
-    return render_order_table(data_list)
+    return render_order_table(data_list, fetch_date=datetime.now().strftime('%c'))
 
 
 @app.route('/')
