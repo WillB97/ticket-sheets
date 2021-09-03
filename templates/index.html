@@ -26,6 +26,8 @@
 
             <label for="filterDate" class="mr-sm-2">Earliest Date:</label>
             <input class="form-control mb-2 mr-sm-2" type="date" name="filterDate" id="filterDate" value="{{config['old_date']|default('')}}">
+            <input type="hidden" name="csvData" value="{{csv_data|default('')}}">
+            <input type="hidden" name="csvName" value="{{csv_name|default('')}}">
             <input type="submit" class="btn btn-primary mb-2" value="Update Config" name="submit">
         </div>
     </form>

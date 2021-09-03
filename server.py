@@ -92,7 +92,7 @@ def prepare_booking_table_values(processed_bookings, header):
     return rendered_bookings
 
 
-def render_order_table(orders, csv_name=None):
+def render_order_table(orders, csv_name=None, csv_data=''):
     if not orders:
         return render_tickets_error("No Ticket Data Found")
 
@@ -113,7 +113,8 @@ def render_order_table(orders, csv_name=None):
             'hideOld': HIDE_OLD_ORDERS,
             'old_date': OLD_ORDER_DATE,
         },
-        csv_name=csv_name
+        csv_name=csv_name,
+        csv_data=csv_data,
     )
 
 
@@ -187,7 +188,12 @@ def uploaded_tickets():
 
     data_list = list(csv.reader(csv_str.splitlines(keepends=True), delimiter=','))
 
-    return render_order_table(data_list, f.filename)
+    return render_order_table(data_list, f.filename, csv_data=json.dumps(data_list))
+
+
+@app.route('/config', methods=['GET'])
+def config_get_redirect():
+    return redirect(url_for('prepare_upload'))
 
 
 @app.route('/config', methods=['POST'])
@@ -201,7 +207,14 @@ def update_config():
     OLD_ORDER_DATE = request.form.get('filterDate', '')
 
     save_config()
-    return redirect(request.referrer)
+
+    try:
+        # try to render the cached CSV data if it is available
+        csv_data = json.loads(request.form.get('csvData'))
+        return render_order_table(csv_data, request.form.get('csvName'), csv_data=csv_data)
+    except (ValueError, json.JSONDecodeError):
+        # if there is no CSV data just return to the previous page
+        return redirect(request.referrer)
 
 
 def save_config():
