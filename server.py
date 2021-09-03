@@ -159,10 +159,6 @@ def ticket_sheet():
 
 
 @app.route('/')
-def root_redirect():
-    return redirect(url_for('prepare_upload'))
-
-
 @app.route('/manual', methods=['GET'])
 def prepare_upload():
     return render_template(
