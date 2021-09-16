@@ -54,6 +54,10 @@
     });
 </script>
 <hr>
+{% if not error %}
+    {% include "ticket_breakdown.html" %}
+    <br>
+{% endif %}
 <button type="button" class="btn btn-success btn-block btn-lg" onclick="window.print()">Print this page</button>
 
 {% if csv_name %}
@@ -61,9 +65,6 @@
 {% endif %}
 {% if fetch_date %}
     <br><h5 style="text-align: center;">Data fetched: {{fetch_date}}</h5>
-{% endif %}
-{% if not error %}
-    {% include "ticket_breakdown.html" %}
 {% endif %}
 {% endblock %}
 
