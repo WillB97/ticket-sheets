@@ -72,7 +72,7 @@ def parse_bookings(raw_data):
     return parsed_bookings
 
 
-def prepare_booking_table_values(processed_bookings, header):
+def prepare_booking_table_values(processed_bookings, header, day_totals=None):
     rendered_bookings = []
     last_seen_date = datetime(1970, 1, 1, 0, 0)  # use minimum date so the first date in printed
 
@@ -80,6 +80,17 @@ def prepare_booking_table_values(processed_bookings, header):
         if parse_ticket_sheet.GROUP_BOOKINGS_BY_DATE:
             booking_date = parse_ticket_sheet.date_sort_item(original_booking['Start date'])
             if booking_date != last_seen_date:
+                if (
+                    last_seen_date != datetime(1970, 1, 1, 0, 0)
+                    and day_totals is not None
+                ):
+                    try:
+                        totals = day_totals[last_seen_date.strftime('%d/%m/%y')]
+                        rendered_bookings.append({'booking_type': 'totals', 'data': totals})
+                    except KeyError:
+                        # skip totals when they are missing
+                        pass
+
                 rendered_bookings.append({
                     'booking_type': 'date',
                     'date': parse_ticket_sheet.format_group_date(booking_date),
@@ -90,6 +101,14 @@ def prepare_booking_table_values(processed_bookings, header):
             'booking_type': 'order',
             'booking': dict(zip(header, booking)),
         })
+
+    if day_totals is not None:
+        try:
+            totals = day_totals[last_seen_date.strftime('%d/%m/%y')]
+            rendered_bookings.append({'booking_type': 'totals', 'data': totals})
+        except KeyError:
+            # skip totals when they are missing
+            pass
 
     return rendered_bookings
 
@@ -108,6 +127,37 @@ def prepare_ticket_breakdown(processed_bookings, labels):
     return dict(totals)
 
 
+def generate_day_totals(breakdown):
+    daily_totals = {}
+
+    for date, date_group in breakdown.items():
+        num_tickets = 0
+        num_orders = 0
+        total_cost = 0.0
+        ticket_totals = defaultdict(int)
+
+        for _, event_totals in date_group.items():
+            num_tickets += sum(event_totals.full_value_tickets.values())
+            num_tickets += sum(event_totals.reduced_tickets.values())
+            num_orders += event_totals.total_orders
+            total_cost += event_totals.total_value
+
+            for ticket, qty in event_totals.full_value_tickets.items():
+                ticket_totals[ticket] += qty
+
+            for ticket, qty in event_totals.reduced_tickets.items():
+                ticket_totals[ticket] += qty
+
+        daily_totals[date] = {
+            'num_tickets': num_tickets,
+            'num_orders': num_orders,
+            'total_cost': total_cost,
+            'ticket_totals': ticket_totals,
+        }
+
+    return daily_totals
+
+
 def render_order_table(orders, csv_name=None, csv_data='', fetch_date=None):
     if not orders:
         return render_tickets_error("No Ticket Data Found")
@@ -118,8 +168,9 @@ def render_order_table(orders, csv_name=None, csv_data='', fetch_date=None):
     filtered_bookings = [booking[1].values() for booking in parsed_bookings]
     labels = parsed_bookings[0][1].keys()
 
-    rendered_bookings = prepare_booking_table_values(parsed_bookings, header)
     breakdown = prepare_ticket_breakdown(filtered_bookings, labels)
+    daily_totals = generate_day_totals(breakdown)
+    rendered_bookings = prepare_booking_table_values(parsed_bookings, header, daily_totals)
 
     return render_template(
         'index.html',

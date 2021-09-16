@@ -13,6 +13,16 @@
             <tr>
             {% if row['booking_type'] == 'date' %}
                 <td colspan="{{columns}}" class="px-5"><b>{{ row['date'] }}</b></td>
+            {% elif row['booking_type'] == 'totals' %}
+                <td colspan="4" class="text-center"><b>Totals</b></td>
+                <td class="text-center"><!-- total tickets --><b>{{row.data.num_tickets}}</b></td>
+                <td colspan="3" class="text-center"><b>Orders:</b> {{row.data.num_orders}}</td>
+                <td class="text-center"><!-- total income --><b>{{"%.2f"|format(row.data.total_cost)}}</b></td>
+                <td><!-- ticket totals -->
+                    {% for ticket, qty in row.data.ticket_totals.items() %}
+                    {{ticket}}: {{qty}}<br>
+                    {% endfor %}
+                </td>
             {% else %}
                 {% for label in header %}
                 <td class="text-{{ align[label] }}">{{ row['booking'][label] }}</td>
