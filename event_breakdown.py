@@ -192,7 +192,10 @@ def parse_tickets(ticket_str: str) -> List[Tuple[str, int, float]]:
         ticket_qty = int(ticket_fields[0])
         ticket_price = float(ticket_fields[1][2:-1])
 
-        ticket_output.append((ticket_name, ticket_qty, ticket_price))
+        if ticket_name == 'Child' and ticket_qty > 1:
+            ticket_output.append(('Family Child', ticket_qty, ticket_price))
+        else:
+            ticket_output.append((ticket_name, ticket_qty, ticket_price))
 
     return ticket_output
 
@@ -204,10 +207,7 @@ def calculate_ticket_value(
     total_cost = 0.0
 
     for ticket_name, ticket_qty, _ in tickets:
-        if ticket_name == 'Child' and ticket_qty > 1:
-            ticket_price = ticket_values.get('Family Child', 0)
-        else:
-            ticket_price = ticket_values.get(ticket_name, 0)
+        ticket_price = ticket_values.get(ticket_name, 0)
 
         total_cost += ticket_qty * ticket_price
 
