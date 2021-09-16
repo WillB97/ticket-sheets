@@ -102,7 +102,7 @@ def group_by_date(bookings: Bookings, labels: List[str]) -> Dict[str, Bookings]:
     for booking in bookings:
         booking_dict = dict(zip(labels, booking))  # map columns to label names
         full_date = parse_date(booking_dict['Start date'])
-        date = full_date.strftime('%x')  # locale date format
+        date = full_date.strftime('%d/%m/%y')
 
         grouped_bookings[date].append(booking)
 
