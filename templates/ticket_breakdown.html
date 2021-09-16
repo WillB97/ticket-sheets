@@ -1,0 +1,36 @@
+<button type="button" class="btn btn-secondary btn-block btn-sm" data-toggle="collapse" data-target="#breakdown">View Breakdown</button>
+
+<div id="breakdown" class="collapse">
+    <br>
+    {% for date, date_group in breakdown.items() %}
+        <h4>{{date}}</h4>
+        {% for event, event_bookings in date_group.items() %}
+        <h5><u>{{event}}</u></h5>
+
+        <table><tr><td style="padding:10px">
+            <table class="table table-bordered table-sm w-auto">
+                <thead><tr>
+                    {% for ticket_type in event_bookings.ticket_types %}
+                    <th class="text-center" scope="col">{{ticket_type}}</th>
+                    {% endfor %}
+                </tr></thead>
+                <tbody>
+                    <tr>
+                        {% for ticket_type in event_bookings.ticket_types %}
+                            <td class="text-center">{{
+                                event_bookings.full_value_tickets[ticket_type]|default(0)
+                                + event_bookings.reduced_tickets[ticket_type]|default(0)
+                            }}</td>
+                        {% endfor %}
+                    </tr>
+                </tbody>
+            </table>
+        </td><td style="padding:10px">
+            <b>Total value:</b> £{{ "%.2f"|format(event_bookings.total_value) }}<br>
+            <b>Orders:</b> {{event_bookings.total_orders}}<br>
+        </td></tr></table>
+
+        {% endfor %}
+    {% endfor %}
+    <br>
+</div>

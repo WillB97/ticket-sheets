@@ -5,8 +5,10 @@ import requests
 from io import TextIOWrapper
 from flask import Flask, Markup, url_for, request, redirect, render_template
 from datetime import datetime
+from collections import defaultdict
 
 import parse_ticket_sheet
+import event_breakdown
 
 app = Flask(__name__)
 
@@ -92,6 +94,20 @@ def prepare_booking_table_values(processed_bookings, header):
     return rendered_bookings
 
 
+def prepare_ticket_breakdown(processed_bookings, labels):
+    totals: event_breakdown.BookingsBreakdown = defaultdict(dict)
+
+    grouped_bookings = event_breakdown.group_bookings(processed_bookings, labels)
+
+    for date, day_bookings in grouped_bookings.items():
+        for event, booking_group in day_bookings.items():
+            # TODO: setup support for per-event pricing
+            ticket_values = {}
+            totals[date][event] = event_breakdown.subtotal_orders(booking_group, labels, ticket_values)
+
+    return dict(totals)
+
+
 def render_order_table(orders, csv_name=None, csv_data='', fetch_date=None):
     if not orders:
         return render_tickets_error("No Ticket Data Found")
@@ -99,7 +115,11 @@ def render_order_table(orders, csv_name=None, csv_data='', fetch_date=None):
     header = [column[1] for column in parse_ticket_sheet.table_configuration]
 
     parsed_bookings = parse_bookings(orders)
+    filtered_bookings = [booking[1].values() for booking in parsed_bookings]
+    labels = parsed_bookings[0][1].keys()
+
     rendered_bookings = prepare_booking_table_values(parsed_bookings, header)
+    breakdown = prepare_ticket_breakdown(filtered_bookings, labels)
 
     return render_template(
         'index.html',
@@ -116,6 +136,7 @@ def render_order_table(orders, csv_name=None, csv_data='', fetch_date=None):
         csv_name=csv_name,
         csv_data=csv_data,
         fetch_date=fetch_date,
+        breakdown=breakdown,
     )
 
 

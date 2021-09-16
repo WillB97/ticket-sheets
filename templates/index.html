@@ -62,6 +62,9 @@
 {% if fetch_date %}
     <br><h5 style="text-align: center;">Data fetched: {{fetch_date}}</h5>
 {% endif %}
+{% if not error %}
+    {% include "ticket_breakdown.html" %}
+{% endif %}
 {% endblock %}
 
 {% block content %}
