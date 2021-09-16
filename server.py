@@ -166,9 +166,15 @@ def render_order_table(orders, csv_name=None, csv_data='', fetch_date=None):
 
     parsed_bookings = parse_bookings(orders)
     filtered_bookings = [booking[1].values() for booking in parsed_bookings]
-    labels = parsed_bookings[0][1].keys()
 
-    breakdown = prepare_ticket_breakdown(filtered_bookings, labels)
+    try:
+        labels = parsed_bookings[0][1].keys()
+    except IndexError:
+        # no bookings in parsed_bookings
+        breakdown = {}
+    else:
+        breakdown = prepare_ticket_breakdown(filtered_bookings, labels)
+
     daily_totals = generate_day_totals(breakdown)
     rendered_bookings = prepare_booking_table_values(parsed_bookings, header, daily_totals)
 
