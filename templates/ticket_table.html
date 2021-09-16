@@ -10,7 +10,7 @@
         </thead>
         <tbody>
         {% for row in bookings %}
-            <tr>
+            <tr {% if row['booking_type'] == 'totals' %}id='total'{% endif %}>
             {% if row['booking_type'] == 'date' %}
                 <td colspan="{{columns}}" class="px-5"><b>{{ row['date'] }}</b></td>
             {% elif row['booking_type'] == 'totals' %}

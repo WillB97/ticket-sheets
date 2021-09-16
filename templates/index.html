@@ -55,6 +55,20 @@
 </script>
 <hr>
 {% if not error %}
+    <div class="btn-group btn-group-sm d-flex">
+        <button
+            type="button"
+            class="btn btn-secondary w-100"
+            data-toggle="collapse"
+            data-target="#breakdown"
+        >View Summary Breakdown</button>
+        <button
+            type="button"
+            class="btn btn-warning w-100"
+            onclick="$('tr#total').remove()"
+        >Hide Totals</button>
+    </div>
+
     {% include "ticket_breakdown.html" %}
     <br>
 {% endif %}
