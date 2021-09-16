@@ -7,7 +7,12 @@
             {% for event, event_bookings in date_group.items() %}
                 <!-- Beware these hardcoded widths -->
                 <div class="card mb-3" style="min-width: 16rem;max-width:24rem">
-                    <div class="card-header"><h4>{{date}} - {{event}}</h4></div>
+                    <div class="card-header">
+                        <h4 style="text-align: center">
+                            <b>{{date}}</b><br>
+                            {{event}}
+                        </h4>
+                    </div>
                     <div class="card-body">
 
                         <table class="table table-bordered w-auto mx-auto">
