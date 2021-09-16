@@ -11,20 +11,16 @@
                     <div class="card-body">
 
                         <table class="table table-bordered w-auto mx-auto">
-                            <thead><tr>
-                                {% for ticket_type in event_bookings.ticket_types %}
-                                <th class="text-center" scope="col">{{ticket_type}}</th>
-                                {% endfor %}
-                            </tr></thead>
                             <tbody>
+                                {% for ticket_type in event_bookings.ticket_types %}
                                 <tr>
-                                    {% for ticket_type in event_bookings.ticket_types %}
-                                        <td class="text-center">{{
-                                            event_bookings.full_value_tickets[ticket_type]|default(0)
-                                            + event_bookings.reduced_tickets[ticket_type]|default(0)
-                                        }}</td>
-                                    {% endfor %}
+                                    <th class="text-center" scope="row">{{ticket_type}}</th>
+                                    <td class="text-center">{{
+                                        event_bookings.full_value_tickets[ticket_type]|default(0)
+                                        + event_bookings.reduced_tickets[ticket_type]|default(0)
+                                    }}</td>
                                 </tr>
+                                {% endfor %}
                             </tbody>
                         </table>
                     </div>
