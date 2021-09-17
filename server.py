@@ -162,6 +162,10 @@ def render_order_table(orders, csv_name=None, csv_data='', fetch_date=None):
     if not orders:
         return render_tickets_error("No Ticket Data Found")
 
+    # Setup column layout & filter
+    parse_ticket_sheet.table_configuration = table_configuration
+    parse_ticket_sheet.BOOKING_FILTER_STRING = FILTER_STRING
+
     header = [column[1] for column in parse_ticket_sheet.table_configuration]
 
     parsed_bookings = parse_bookings(orders)
@@ -191,7 +195,7 @@ def render_order_table(orders, csv_name=None, csv_data='', fetch_date=None):
             'old_date': OLD_ORDER_DATE,
         },
         csv_name=csv_name,
-        csv_data=csv_data,
+        csv_data=json.dumps(csv_data),
         fetch_date=fetch_date,
         breakdown=breakdown,
     )
@@ -213,10 +217,6 @@ def render_tickets_error(error, err_str=None):
 
 @app.route('/auto')
 def ticket_sheet():
-    # Setup column layout & filter
-    parse_ticket_sheet.table_configuration = table_configuration
-    parse_ticket_sheet.BOOKING_FILTER_STRING = FILTER_STRING
-
     try:
         r = requests.get(CSV_URL, timeout=10)
     except (requests.exceptions.Timeout, requests.exceptions.ConnectionError) as e:
@@ -253,17 +253,13 @@ def prepare_upload():
 
 @app.route('/manual', methods=['POST'])
 def uploaded_tickets():
-    # Setup column layout & filter
-    parse_ticket_sheet.table_configuration = table_configuration
-    parse_ticket_sheet.BOOKING_FILTER_STRING = FILTER_STRING
-
     f = request.files['fileupload']
 
     csv_str = TextIOWrapper(f).read()
 
     data_list = list(csv.reader(csv_str.splitlines(keepends=True), delimiter=','))
 
-    return render_order_table(data_list, f.filename, csv_data=json.dumps(data_list))
+    return render_order_table(data_list, f.filename, csv_data=data_list)
 
 
 @app.route('/config', methods=['GET'])
