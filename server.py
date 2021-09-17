@@ -4,6 +4,7 @@ import json
 import requests
 from io import TextIOWrapper
 from flask import Flask, Markup, url_for, request, redirect, render_template
+from typing import Dict
 from datetime import datetime
 from collections import defaultdict
 
@@ -18,6 +19,7 @@ FILTER_STRING = ''
 CSV_URL = ''
 HIDE_OLD_ORDERS = False
 OLD_ORDER_DATE = ''
+TICKET_PRICES: Dict[str, Dict[str, Dict[str, float]]] = {}
 
 
 def insert_html_newlines(value: str) -> str:
@@ -120,9 +122,17 @@ def prepare_ticket_breakdown(processed_bookings, labels):
 
     for date, day_bookings in grouped_bookings.items():
         for event, booking_group in day_bookings.items():
-            # TODO: setup support for per-event pricing
-            ticket_values = {}
-            totals[date][event] = event_breakdown.subtotal_orders(booking_group, labels, ticket_values)
+            event_prices = TICKET_PRICES.get(f"{date} {event}", {})
+
+            ticket_values = event_prices.get('event', event_breakdown.STANDARD_PRICES)
+            standard_prices = event_prices.get('standard', event_breakdown.STANDARD_PRICES)
+
+            totals[date][event] = event_breakdown.subtotal_orders(
+                booking_group,
+                labels,
+                ticket_values,
+                standard_prices,
+            )
 
     return dict(totals)
 
@@ -298,12 +308,14 @@ def save_config():
 
     print(f"New config: {config}")
 
+    config['ticket prices'] = TICKET_PRICES
+
     with open(CONFIG_FILE, 'w') as f:
         json.dump(config, f, indent=4)
 
 
 def load_config():
-    global FILTER_STRING, CSV_URL, HIDE_OLD_ORDERS, OLD_ORDER_DATE
+    global FILTER_STRING, CSV_URL, HIDE_OLD_ORDERS, OLD_ORDER_DATE, TICKET_PRICES
 
     with open(CONFIG_FILE, 'r') as f:
         config_data = json.load(f)
@@ -312,6 +324,7 @@ def load_config():
     CSV_URL = config_data['CSV URL']
     HIDE_OLD_ORDERS = config_data['hide old orders']
     OLD_ORDER_DATE = config_data['old order date']
+    TICKET_PRICES = config_data.get('ticket prices', {})
 
 
 load_config()
