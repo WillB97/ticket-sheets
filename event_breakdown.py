@@ -24,9 +24,9 @@ BookingsBreakdown = Dict[str, Dict[str, BookingSubTotal]]
 
 
 STANDARD_PRICES = {
-    'Adult': 9,
-    'Senior': 8,
-    'Child': 7,
+    'Adult': 9.0,
+    'Senior': 8.0,
+    'Child': 7.0,
 }
 
 
@@ -136,6 +136,7 @@ def subtotal_orders(
     bookings: Bookings,
     labels: List[str],
     ticket_values: Dict[str, float],
+    standard_prices: Dict[str, float] = STANDARD_PRICES,
 ) -> BookingSubTotal:
     full_value_tickets: Dict[str, int] = defaultdict(int)  # all keys map to 0 initially
     reduced_tickets: Dict[str, int] = defaultdict(int)
@@ -155,7 +156,7 @@ def subtotal_orders(
 
         total_value += booking_price
         total_saving += saving
-        total_extra_cost += ticket_extra_cost(tickets)
+        total_extra_cost += ticket_extra_cost(tickets, standard_prices)
 
         for ticket_name, ticket_qty, _ in tickets:
             if saving == 0.0:
@@ -214,12 +215,12 @@ def calculate_ticket_value(
     return total_cost
 
 
-def ticket_extra_cost(tickets: List[Tuple[str, int, float]]) -> float:
+def ticket_extra_cost(tickets: List[Tuple[str, int, float]], standard_prices: Dict[str, float]) -> float:
     "Calculate the value above a regular service, required for tax calculations"
     extra_cost = 0.0
 
     for ticket_name, ticket_qty, ticket_value in tickets:
-        # ticket_price = STANDARD_PRICES.get(ticket_name, 0)
+        # ticket_price = standard_prices.get(ticket_name, 0)
         # ticket_qty * ticket_price
 
         # TODO figure this out
