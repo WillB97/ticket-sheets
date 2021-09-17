@@ -29,6 +29,8 @@ STANDARD_PRICES = {
     'Child': 7.0,
 }
 
+PREORDERED_TYPES = ['Adult', 'Senior', 'Child', 'Family Child']
+
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser()
@@ -132,6 +134,23 @@ def group_bookings(bookings: Bookings, labels: List[str]) -> Dict[str, Dict[str,
     return grouped_bookings
 
 
+def order_ticket_types(ticket_types: List[str]) -> List[str]:
+    ticket_types_sorted = []
+
+    ticket_types.sort()
+
+    # A hack to manually place the default tickets in the right order
+    for ticket_type in PREORDERED_TYPES:
+        if ticket_type in ticket_types:
+            ticket_types_sorted.append(ticket_type)
+
+    for ticket_type in ticket_types:
+        if ticket_type not in PREORDERED_TYPES:
+            ticket_types_sorted.append(ticket_type)
+
+    return ticket_types_sorted
+
+
 def subtotal_orders(
     bookings: Bookings,
     labels: List[str],
@@ -167,7 +186,7 @@ def subtotal_orders(
             if ticket_name not in ticket_types:
                 ticket_types.append(ticket_name)
 
-    ticket_types.sort()
+    ticket_types_sorted = order_ticket_types(ticket_types)
 
     return BookingSubTotal(
         dict(full_value_tickets),
@@ -176,7 +195,7 @@ def subtotal_orders(
         total_saving,
         total_extra_cost,
         total_orders,
-        ticket_types,
+        ticket_types_sorted,
     )
 
 

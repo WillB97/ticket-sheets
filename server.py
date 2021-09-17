@@ -158,11 +158,18 @@ def generate_day_totals(breakdown):
             for ticket, qty in event_totals.reduced_tickets.items():
                 ticket_totals[ticket] += qty
 
+        ticket_types = event_breakdown.order_ticket_types(list(ticket_totals.keys()))
+
+        ticket_totals_sorted = {}
+
+        for ticket_type in ticket_types:  # reinsert all keys in the correct order
+            ticket_totals_sorted[ticket_type] = ticket_totals[ticket_type]
+
         daily_totals[date] = {
             'num_tickets': num_tickets,
             'num_orders': num_orders,
             'total_cost': total_cost,
-            'ticket_totals': ticket_totals,
+            'ticket_totals': ticket_totals_sorted,
         }
 
     return daily_totals
