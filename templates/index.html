@@ -65,7 +65,7 @@
         <button
             type="button"
             class="btn btn-warning w-100"
-            onclick="$('tr#total').remove()"
+            onclick="$('tr#total').remove();$(this).text('Totals Hidden');$(this).prop('disabled',true)"
         >Hide Totals</button>
     </div>
 
