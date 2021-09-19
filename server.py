@@ -270,13 +270,18 @@ def prepare_upload():
 
 @app.route('/manual', methods=['POST'])
 def uploaded_tickets():
-    f = request.files['fileupload']
+    try:
+        # try to render the cached CSV data if it is available
+        csv_data = json.loads(request.form['csvData'])
+        return render_order_table(csv_data, request.form.get('csvName'), csv_data=csv_data)
+    except (KeyError, json.JSONDecodeError):
+        f = request.files['fileupload']
 
-    csv_str = TextIOWrapper(f).read()
+        csv_str = TextIOWrapper(f).read()
 
-    data_list = list(csv.reader(csv_str.splitlines(keepends=True), delimiter=','))
+        data_list = list(csv.reader(csv_str.splitlines(keepends=True), delimiter=','))
 
-    return render_order_table(data_list, f.filename, csv_data=data_list)
+        return render_order_table(data_list, f.filename, csv_data=data_list)
 
 
 @app.route('/config', methods=['GET'])
@@ -303,6 +308,29 @@ def update_config():
     except (ValueError, json.JSONDecodeError):
         # if there is no CSV data just return to the previous page
         return redirect(request.referrer)
+
+
+@app.route('/prices', methods=['GET'])
+def get_event_price():
+    event = request.args.get('event')
+    event_prices = TICKET_PRICES.get(event, {})
+
+    return {
+        'event': event_prices.get('event', event_breakdown.STANDARD_PRICES),
+        'standard': event_prices.get('standard', event_breakdown.STANDARD_PRICES),
+    }
+
+
+@app.route('/prices', methods=['POST'])
+def set_event_price():
+    event = request.form['event']
+    prices = json.loads(request.form['prices'])
+
+    TICKET_PRICES[event] = prices
+
+    save_config()
+
+    return {'success': True}
 
 
 def save_config():

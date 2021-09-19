@@ -29,12 +29,198 @@
                     </div>
                     <div class="card-footer">
                         <b>Total value:</b> £{{ "%.2f"|format(event_bookings.total_value) }}<br>
-                        <!-- <b>Total savings:</b> £{{ "%.2f"|format(event_bookings.total_saving) }}<br> -->
-                        <!-- <b>Total Extra Value:</b> £{{ "%.2f"|format(event_bookings.total_extra_cost) }}<br> -->
+                        {% if event_bookings.total_saving != 0.0 %}
+                        <b>Total savings:</b> £{{ "%.2f"|format(event_bookings.total_saving) }}<br>
+                        {% endif %}
+                        {% if event_bookings.total_extra_cost != 0.0 %}
+                        <b>Total Extra Value:</b> £{{ "%.2f"|format(event_bookings.total_extra_cost) }}<br>
+                        {% endif %}
                         <b>Orders:</b> {{event_bookings.total_orders}}
                     </div>
                 </div>
             {% endfor %}
         {% endfor %}
     </div>
+
+    <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#priceModal" id='priceModalOpen'>
+        Set prices
+    </button>
+    <div class="modal" id="priceModal">
+        <div class="modal-dialog">
+            <div class="modal-content">
+
+                <div class="modal-header">
+                <h4 class="modal-title">Set Prices</h4>
+                <button type="button" class="close" data-dismiss="modal">&times;</button>
+                </div>
+
+                <div class="modal-body">
+                    <label for='eventSelect'>Event:</label>
+                    <select id='eventSelect'>
+                        {% for date, date_group in breakdown.items() %}
+                            {% for event, event_bookings in date_group.items() %}
+                            <option>{{date}} {{event}}</option>
+                            {% endfor %}
+                        {% endfor %}
+                    </select>
+                    <hr>
+                    <p>Rows with blank names are ignored.</p>
+                    <h5>Event Prices</h5>
+                    <table id='priceTable' class="table table-bordered table-sm w-auto mx-auto"></table>
+                    <div class='text-center'>
+                        <button type='button' class='btn btn-success btn-sm mx-auto' onclick="addRow('#priceTable');">Add Row</button>
+                    </div>
+
+                    <br>
+                    <h5>Standard Prices</h5>
+                    <table id='standardPriceTable' class="table table-bordered table-sm w-auto mx-auto"></table>
+                    <div class='text-center'>
+                        <button type='button' class='btn btn-success btn-sm mx-auto' onclick="addRow('#standardPriceTable');">Add Row</button>
+                    </div>
+
+                    <hr>
+                    <button type='button' class='btn btn-success' id='savePrices'>Save Prices</button>
+
+                </div>
+
+                <div class="modal-footer">
+                <button type="button" class="btn btn-danger" data-dismiss="modal">Close</button>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <form action="manual" id='refreshPrices' method="POST">
+        <input type="hidden" name='csvName' value="{{csv_name|default('')}}">
+        <input type="hidden" name='csvData' value="{{csv_data|default('')}}">
+    </form>
+    <script>
+        function addRow(tableName) {
+            $(tableName).append(
+                $('<tr>').append(
+                    $('<td>').append(
+                        $('<input>').attr({
+                            'size': 8,
+                            'class': 'form-control',
+                            'id': 'ticket'
+                        })
+                    ),
+                    $('<td>').append(
+                        $('<input>').attr({
+                            'size': 5,
+                            'type': 'number',
+                            'step': 1,
+                            'class': 'form-control',
+                            'id': 'price'
+                        })
+                    )
+                )
+            );
+        }
+
+        $('#priceModal').on('hidden.bs.modal', function() {
+            // post hidden form (csvData, csvName) -> /manual
+            $('#refreshPrices').submit();
+        });
+
+        $('#priceModal').on('show.bs.modal', fetchPrices);
+        $('#eventSelect').on('change', fetchPrices);
+
+        function fetchPrices() {
+            // ajax fetch prices of current event
+            $.getJSON(
+                '/prices',
+                {"event": $('#eventSelect').val()},
+                loadPriceTable
+            );
+        }
+        function loadPriceTable(result) {
+            // populate price tables with received data
+            $('#priceTable').empty();  // delete all rows in table
+
+            for (let [ticket, value] of Object.entries(result['event'])) {
+                $('#priceTable').append(
+                    $('<tr>').append(
+                        $('<td>').append(
+                            $('<input>').attr({
+                                'size': 8,
+                                'class': 'form-control',
+                                'id': 'ticket'
+                            }).val(ticket)
+                        ),
+                        $('<td>').append(
+                            $('<input>').attr({
+                                'size': 5,
+                                'type': 'number',
+                                'step': 1,
+                                'class': 'form-control',
+                                'id': 'price'
+                            }).val(value.toFixed(2))
+                        )
+                    )
+                );
+            }
+
+            $('#standardPriceTable').empty();  // delete all rows in table
+            for (let [ticket, value] of Object.entries(result['standard'])) {
+                $('#standardPriceTable').append(
+                    $('<tr>').append(
+                        $('<td>').append(
+                            $('<input>').attr({
+                                'size': 8,
+                                'class': 'form-control',
+                                'id': 'ticket'
+                            }).val(ticket)
+                        ),
+                        $('<td>').append(
+                            $('<input>').attr({
+                                'size': 5,
+                                'type': 'number',
+                                'step': 1,
+                                'class': 'form-control',
+                                'id': 'price'
+                            }).val(value.toFixed(2))
+                        )
+                    )
+                );
+            }
+        }
+
+        $('#savePrices').on('click', function() {
+            // ajax post ticket prices, standard prices
+            prices = {
+                'event': {},
+                'standard': {}
+            };
+
+            for (row of $('#priceTable tr').toArray()) {
+                elements = $(row).children();
+                name = $(elements[0]).find('input').val();
+                price = $(elements[1]).find('input').val();
+
+                if (name != '' && price != '') {
+                    prices['event'][name] = parseFloat(price);
+                }
+            }
+
+            for (row of $('#standardPriceTable tr').toArray()) {
+                elements = $(row).children();
+                name = $(elements[0]).find('input').val();
+                price = $(elements[1]).find('input').val();
+
+                if (name != '' && price != '') {
+                    prices['standard'][name] = parseFloat(price);
+                }
+            }
+
+            $.post(
+                '/prices',
+                {
+                    'event': $('#eventSelect').val(),
+                    'prices': JSON.stringify(prices)
+                }
+            );
+        });
+    </script>
 </div>
