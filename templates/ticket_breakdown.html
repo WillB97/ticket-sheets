@@ -4,7 +4,7 @@
         {% for date, date_group in breakdown.items() %}
             {% for event, event_bookings in date_group.items() %}
                 <!-- Beware these hardcoded widths -->
-                <div class="card mb-3" style="min-width: 16rem;max-width:24rem">
+                <div class="card mb-3" style="min-width:18rem;max-width:24rem">
                     <div class="card-header">
                         <h4 style="text-align: center">
                             <b>{{date}}</b><br>
@@ -14,10 +14,20 @@
                     <div class="card-body">
 
                         <table class="table table-bordered w-auto mx-auto">
+                            <thead>
+                                <tr>
+                                    <th></th>
+                                    <th>Reg</th>
+                                    <th>Reduc</th>
+                                    <th>Tot</th>
+                                </tr>
+                            </thead>
                             <tbody>
                                 {% for ticket_type in event_bookings.ticket_types %}
                                 <tr>
                                     <th class="text-center" scope="row">{{ticket_type}}</th>
+                                    <td class="text-center">{{event_bookings.full_value_tickets[ticket_type]|default(0)}}</td>
+                                    <td class="text-center">{{event_bookings.reduced_tickets[ticket_type]|default(0)}}</td>
                                     <td class="text-center">{{
                                         event_bookings.full_value_tickets[ticket_type]|default(0)
                                         + event_bookings.reduced_tickets[ticket_type]|default(0)
