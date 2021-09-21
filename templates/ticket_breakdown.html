@@ -28,6 +28,10 @@
                         </table>
                     </div>
                     <div class="card-footer">
+                        <b>Total tickets:</b> {{
+                            event_bookings.full_value_tickets.values()|sum
+                            + event_bookings.reduced_tickets.values()|sum
+                        }}<br>
                         <b>Total value:</b> £{{ "%.2f"|format(event_bookings.total_value) }}<br>
                         {% if event_bookings.total_saving != 0.0 %}
                         <b>Total savings:</b> £{{ "%.2f"|format(event_bookings.total_saving) }}<br>
