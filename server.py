@@ -232,6 +232,15 @@ def render_tickets_error(error, err_str=None):
     )
 
 
+@app.before_request
+def load_fresh_config():
+    """
+    Under gunicorn different instances will respond to requests
+    so the loaded config may have been updated
+    """
+    load_config()
+
+
 @app.route('/auto')
 def ticket_sheet():
     try:
