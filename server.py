@@ -175,6 +175,19 @@ def generate_day_totals(breakdown):
     return daily_totals
 
 
+def grand_total_orders(breakdown):
+    totals = {'total_value': 0, 'total_orders': 0, 'total_tickets': 0}
+
+    for date, day_bookings in breakdown.items():
+        for event, event_bookings in day_bookings.items():
+            totals['total_value'] += event_bookings.total_value
+            totals['total_orders'] += event_bookings.total_orders
+            totals['total_tickets'] += sum(event_bookings.full_value_tickets.values())
+            totals['total_tickets'] += sum(event_bookings.reduced_tickets.values())
+
+    return totals
+
+
 def render_order_table(orders, csv_name=None, csv_data='', fetch_date=None):
     if not orders:
         return render_tickets_error("No Ticket Data Found")
@@ -215,6 +228,7 @@ def render_order_table(orders, csv_name=None, csv_data='', fetch_date=None):
         csv_data=json.dumps(csv_data),
         fetch_date=fetch_date,
         breakdown=breakdown,
+        totals=grand_total_orders(breakdown),
     )
 
 

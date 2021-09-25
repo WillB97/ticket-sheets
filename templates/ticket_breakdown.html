@@ -45,10 +45,17 @@
             {% endfor %}
         {% endfor %}
     </div>
+    <div style="text-align: center;">
+        <h3>Grand Totals</h3>
+        <b>Total Value:</b> £{{ "%.2f"|format(totals.total_value) }}<br>
+        <b>Total Orders:</b> {{totals.total_orders}}<br>
+        <b>Total Tickets:</b> {{totals.total_tickets}}<br>
+        <br>
+        <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#priceModal" id='priceModalOpen'>
+            Set prices
+        </button>
+    </div>
 
-    <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#priceModal" id='priceModalOpen'>
-        Set prices
-    </button>
     <div class="modal" id="priceModal">
         <div class="modal-dialog">
             <div class="modal-content">
