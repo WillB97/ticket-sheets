@@ -1,0 +1,10 @@
+{% extends "header.html" %}
+
+{% block content %}
+<div class="alert alert-danger">
+    <h4>{{error}}</h4>
+    {% if error_string %}
+        <p>{{error_string}}</p>
+    {% endif %}
+</div>
+{% endblock %}

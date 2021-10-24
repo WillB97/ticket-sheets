@@ -1,0 +1,43 @@
+{% extends "header.html" %}
+
+{% block content %}
+<form action="config" method="post">
+    <h3>Adjust Config:</h3>
+    <div class="input-group mb-2">
+        <label for="csvUrl" class="mr-sm-2">CSV URL:</label>
+        <input class="form-control mb-2 mr-sm-2" type="url" name="csvUrl" id="csvUrl" value="{{config['csv_url']|default('')}}">
+        <input type="submit" class="btn btn-primary mb-2" value="Update URL" name="submit">
+    </div>
+</form>
+
+<br>
+<a style="margin:auto" type="button" class="btn btn-primary btn-block" href="{{config['csv_url']}}" target="_blank">Download Raw CSV</a>
+<hr>
+<form action="upload" method="post" enctype="multipart/form-data">
+    <h3>Upload CSV to Use:</h3>
+    <div class="input-group mb-2 mr-sm-2">
+        <div class="custom-file mb-2 mr-sm-2">
+            <input type="file" class="custom-file-input" name="fileupload" id="fileToUpload">
+            <label class="custom-file-label" for="fileToUpload">Choose file</label>
+        </div>
+        <input type="submit" class="btn btn-primary mb-2 mr-sm-2" value="Upload File" name="submit">
+    </div>
+</form>
+
+{% if error %}
+<div class="alert alert-danger">
+    <h4>{{error}}</h4>
+    {% if error_string %}
+        <p>{{error_string}}</p>
+    {% endif %}
+</div>
+{% endif %}
+
+<script>
+    // Add the following code if you want the name of the file appear on select
+    $(".custom-file-input").on("change", function() {
+      var fileName = $(this).val().split("\\").pop();
+      $(this).siblings(".custom-file-label").addClass("selected").html(fileName);
+    });
+</script>
+{% endblock %}

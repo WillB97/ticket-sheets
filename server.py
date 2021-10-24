@@ -2,8 +2,9 @@
 import csv
 import json
 import requests
+from os import urandom
 from io import TextIOWrapper
-from flask import Flask, Markup, url_for, request, redirect, render_template
+from flask import Flask, Markup, url_for, request, redirect, render_template, session
 from typing import Dict
 from datetime import datetime
 from collections import defaultdict
@@ -188,59 +189,9 @@ def grand_total_orders(breakdown):
     return totals
 
 
-def render_order_table(orders, csv_name=None, csv_data='', fetch_date=None):
-    if not orders:
-        return render_tickets_error("No Ticket Data Found")
-
-    # Setup column layout & filter
-    parse_ticket_sheet.table_configuration = table_configuration
-    parse_ticket_sheet.BOOKING_FILTER_STRING = FILTER_STRING
-
-    header = [column[1] for column in parse_ticket_sheet.table_configuration]
-
-    parsed_bookings = parse_bookings(orders)
-    filtered_bookings = [booking[1].values() for booking in parsed_bookings]
-
-    try:
-        labels = parsed_bookings[0][1].keys()
-    except IndexError:
-        # no bookings in parsed_bookings
-        breakdown = {}
-    else:
-        breakdown = prepare_ticket_breakdown(filtered_bookings, labels)
-
-    daily_totals = generate_day_totals(breakdown)
-    rendered_bookings = prepare_booking_table_values(parsed_bookings, header, daily_totals)
-
-    return render_template(
-        'index.html',
-        header=header,
-        bookings=rendered_bookings,
-        align=column_align,
-        columns=len(header),
-        config={
-            'csv_url': CSV_URL,
-            'filter': FILTER_STRING,
-            'hideOld': HIDE_OLD_ORDERS,
-            'old_date': OLD_ORDER_DATE,
-        },
-        csv_name=csv_name,
-        csv_data=json.dumps(csv_data),
-        fetch_date=fetch_date,
-        breakdown=breakdown,
-        totals=grand_total_orders(breakdown),
-    )
-
-
 def render_tickets_error(error, err_str=None):
     return render_template(
-        'index.html',
-        config={
-            'csv_url': CSV_URL,
-            'filter': FILTER_STRING,
-            'hideOld': HIDE_OLD_ORDERS,
-            'old_date': OLD_ORDER_DATE,
-        },
+        'error.html',
         error=error,
         error_string=err_str
     )
@@ -273,43 +224,45 @@ def ticket_sheet():
 
     data_list = list(csv.reader(r.text.splitlines(keepends=True), delimiter=','))
 
-    return render_order_table(data_list, fetch_date=datetime.now().strftime('%c'))
+    session['csv_name'] = f"Auto ({datetime.now().strftime('%c')})"
+    session['csv_data'] = data_list
+    return redirect(url_for('ticket_table'))
 
 
 @app.route('/')
-@app.route('/manual', methods=['GET'])
+@app.route('/upload', methods=['GET'])
 def prepare_upload():
     return render_template(
-        'index.html',
-        config={
-            'csv_url': CSV_URL,
-            'filter': FILTER_STRING,
-            'hideOld': HIDE_OLD_ORDERS,
-            'old_date': OLD_ORDER_DATE,
-        },
-        error="Please upload a CSV"
+        'upload.html',
+        config={'csv_url': CSV_URL}
     )
 
 
-@app.route('/manual', methods=['POST'])
+@app.route('/upload', methods=['POST'])
 def uploaded_tickets():
     try:
-        # try to render the cached CSV data if it is available
-        csv_data = json.loads(request.form['csvData'])
-        return render_order_table(csv_data, request.form.get('csvName'), csv_data=csv_data)
-    except (KeyError, json.JSONDecodeError):
         f = request.files['fileupload']
 
         csv_str = TextIOWrapper(f).read()
 
         data_list = list(csv.reader(csv_str.splitlines(keepends=True), delimiter=','))
 
-        return render_order_table(data_list, f.filename, csv_data=data_list)
+        if not data_list:
+            return render_template(
+                'upload.html',
+                config={'csv_url': CSV_URL},
+                error="No Ticket Data Found"
+            )
 
-
-@app.route('/config', methods=['GET'])
-def config_get_redirect():
-    return redirect(url_for('prepare_upload'))
+        session['csv_name'] = f.filename
+        session['csv_data'] = data_list
+        return redirect(url_for('ticket_table'))
+    except Exception:
+        return render_template(
+            'upload.html',
+            config={'csv_url': CSV_URL},
+            error="Please upload a valid CSV"
+        )
 
 
 @app.route('/config', methods=['POST'])
@@ -324,15 +277,95 @@ def update_config():
 
     save_config()
 
+    # return to the previous page
+    return redirect(request.referrer)
+
+
+@app.route('/tickets')
+def ticket_table():
     try:
-        # try to render the cached CSV data if it is available
-        csv_data = json.loads(request.form.get('csvData'))
-        return render_order_table(csv_data, request.form.get('csvName'), csv_data=csv_data)
-    except (ValueError, json.JSONDecodeError):
-        # if there is no CSV data just return to the previous page
-        return redirect(request.referrer)
+        orders = session['csv_data']
+    except KeyError:
+        return render_tickets_error("Please upload a CSV")
+
+    if not orders:
+        return render_tickets_error("No Ticket Data Found")
+
+    # Setup column layout & filter
+    parse_ticket_sheet.table_configuration = table_configuration
+    parse_ticket_sheet.BOOKING_FILTER_STRING = FILTER_STRING
+
+    header = [column[1] for column in parse_ticket_sheet.table_configuration]
+
+    parsed_bookings = parse_bookings(orders)
+    filtered_bookings = [booking[1].values() for booking in parsed_bookings]
+
+    try:
+        labels = parsed_bookings[0][1].keys()
+    except IndexError:
+        # no bookings in parsed_bookings
+        breakdown = {}
+    else:
+        breakdown = prepare_ticket_breakdown(filtered_bookings, labels)
+
+    daily_totals = generate_day_totals(breakdown)
+    rendered_bookings = prepare_booking_table_values(parsed_bookings, header, daily_totals)
+
+    return render_template(
+        'ticket_table.html',
+        header=header,
+        bookings=rendered_bookings,
+        align=column_align,
+        columns=len(header),
+        config={
+            'csv_url': CSV_URL,
+            'filter': FILTER_STRING,
+            'hideOld': HIDE_OLD_ORDERS,
+            'old_date': OLD_ORDER_DATE,
+        },
+        csv_name=session.get('csv_name'),
+    )
 
 
+@app.route('/breakdown')
+def ticket_breakdown():
+    try:
+        orders = session['csv_data']
+    except KeyError:
+        return render_tickets_error("Please upload a CSV")
+
+    if not orders:
+        return render_tickets_error("No Ticket Data Found")
+
+    # Setup column layout & filter
+    parse_ticket_sheet.table_configuration = table_configuration
+    parse_ticket_sheet.BOOKING_FILTER_STRING = FILTER_STRING
+
+    parsed_bookings = parse_bookings(orders)
+    filtered_bookings = [booking[1].values() for booking in parsed_bookings]
+
+    try:
+        labels = parsed_bookings[0][1].keys()
+    except IndexError:
+        # no bookings in parsed_bookings
+        breakdown = {}
+    else:
+        breakdown = prepare_ticket_breakdown(filtered_bookings, labels)
+
+    return render_template(
+        'ticket_breakdown.html',
+        config={
+            'filter': FILTER_STRING,
+            'hideOld': HIDE_OLD_ORDERS,
+            'old_date': OLD_ORDER_DATE,
+        },
+        csv_name=session.get('csv_name'),
+        breakdown=breakdown,
+        totals=grand_total_orders(breakdown),
+    )
+
+
+# AJAX methods
 @app.route('/prices', methods=['GET'])
 def get_event_price():
     event = request.args.get('event')
@@ -366,6 +399,7 @@ def save_config():
 
     print(f"New config: {config}")
 
+    config['secret_key'] = app.secret_key
     config['ticket prices'] = TICKET_PRICES
 
     with open(CONFIG_FILE, 'w') as f:
@@ -383,6 +417,14 @@ def load_config():
     HIDE_OLD_ORDERS = config_data['hide old orders']
     OLD_ORDER_DATE = config_data['old order date']
     TICKET_PRICES = config_data.get('ticket prices', {})
+
+    if app.secret_key is None:
+        if config_data.get('secret_key') is None:
+            app.secret_key = urandom(24).hex()
+        else:
+            app.secret_key = config_data['secret_key']
+
+        save_config()
 
 
 load_config()
