@@ -5,6 +5,7 @@ import requests
 from os import urandom
 from io import TextIOWrapper
 from flask import Flask, Markup, url_for, request, redirect, render_template, session
+from flask_session import Session
 from typing import Dict
 from datetime import datetime
 from collections import defaultdict
@@ -13,6 +14,10 @@ import parse_ticket_sheet
 import event_breakdown
 
 app = Flask(__name__)
+
+app.config["SESSION_PERMANENT"] = False
+app.config["SESSION_TYPE"] = "filesystem"
+Session(app)
 
 CONFIG_FILE = 'config.json'
 
