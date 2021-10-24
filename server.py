@@ -257,7 +257,7 @@ def uploaded_tickets():
         session['csv_name'] = f.filename
         session['csv_data'] = data_list
         return redirect(url_for('ticket_table'))
-    except Exception:
+    except KeyError:
         return render_template(
             'upload.html',
             config={'csv_url': CSV_URL},
@@ -265,12 +265,23 @@ def uploaded_tickets():
         )
 
 
-@app.route('/config', methods=['POST'])
-def update_config():
-    global FILTER_STRING, CSV_URL, HIDE_OLD_ORDERS, OLD_ORDER_DATE
+@app.route('/config-url', methods=['POST'])
+def update_config_url():
+    global CSV_URL
 
     # store request data
     CSV_URL = request.form.get('csvUrl', '')
+    save_config()
+
+    # return to the previous page
+    return redirect(request.referrer)
+
+
+@app.route('/config', methods=['POST'])
+def update_config():
+    global FILTER_STRING, HIDE_OLD_ORDERS, OLD_ORDER_DATE
+
+    # store request data
     FILTER_STRING = request.form.get('filter', '')
     HIDE_OLD_ORDERS = (request.form.get('hideOld', '') == 'hide')
     OLD_ORDER_DATE = request.form.get('filterDate', '')
