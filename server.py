@@ -234,7 +234,8 @@ def ticket_sheet():
 def prepare_upload():
     return render_template(
         'upload.html',
-        config={'csv_url': CSV_URL}
+        config={'csv_url': CSV_URL},
+        active='upload'
     )
 
 
@@ -251,7 +252,8 @@ def uploaded_tickets():
             return render_template(
                 'upload.html',
                 config={'csv_url': CSV_URL},
-                error="No Ticket Data Found"
+                error="No Ticket Data Found",
+                active='upload'
             )
 
         session['csv_name'] = f.filename
@@ -261,7 +263,8 @@ def uploaded_tickets():
         return render_template(
             'upload.html',
             config={'csv_url': CSV_URL},
-            error="Please upload a valid CSV"
+            error="Please upload a valid CSV",
+            active='upload'
         )
 
 
@@ -335,6 +338,7 @@ def ticket_table():
             'old_date': OLD_ORDER_DATE,
         },
         csv_name=session.get('csv_name'),
+        active='tickets'
     )
 
 
@@ -373,6 +377,7 @@ def ticket_breakdown():
         csv_name=session.get('csv_name'),
         breakdown=breakdown,
         totals=grand_total_orders(breakdown),
+        active='breakdown'
     )
 
 
