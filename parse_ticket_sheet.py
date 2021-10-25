@@ -17,7 +17,7 @@ def simplify_product(value: str, booking: Dict[str, str]) -> str:
 
 def simplify_date(value: str, booking: Dict[str, str]) -> str:
     value_clean = re.sub(r'([0-9]+)(st|nd|rd|th)', r'\1', value)
-    date_value = datetime.strptime(value_clean, '%A %B %d %Y %H:%M %p')
+    date_value = datetime.strptime(value_clean, '%A %B %d %Y %I:%M %p')
     return date_value.strftime('%a %d/%m')
 
 
@@ -84,7 +84,7 @@ def parse_args():
 
 def date_sort_item(date_str: str) -> datetime:
     value_clean = re.sub(r'([0-9]+)(st|nd|rd|th)', r'\1', date_str)
-    return datetime.strptime(value_clean, '%A %B %d %Y %H:%M %p')
+    return datetime.strptime(value_clean, '%A %B %d %Y %I:%M %p')
 
 
 def sort_bookings(bookings: List[List[str]], input_columns: List[str]) -> List[List[str]]:
