@@ -69,6 +69,7 @@ alpha_table_configuration = [
 column_align = {
     'Order': 'center',
     'Booking': 'center',
+    'Train': 'center',
     'First name': 'right',
     'Last name': 'left',
     'Qty.': 'center',

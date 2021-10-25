@@ -104,11 +104,17 @@ def extract_present_details(value: str, booking: Dict[str, str]) -> str:
     return ', '.join(presents)
 
 
+def parse_train_time(value: str, booking: Dict[str, str]) -> str:
+    full_date_str = date_sort_item(value)
+    return full_date_str.strftime('%H:%M')
+
+
 ## Output configuration ##
 table_configuration = [
     # (<input column heading>, <output column label>, <optional conversion function>),
     ('Order ID', 'Order', None),
     ('Booking ID', 'Booking', None),
+    ('Start date', 'Train', parse_train_time),
     ('Customer first name', 'First name', None),
     ('Customer last name', 'Last name', None),
     ('Quantity', 'Qty.', None),
