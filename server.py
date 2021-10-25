@@ -49,6 +49,7 @@ table_configuration = [
     (None, 'QR?', None),
     ('Product price', 'Paid', parse_ticket_sheet.tidy_price),
     ('Price categories', 'Price categories', format_price_category),
+    ('Present Type', 'Children', parse_ticket_sheet.extract_present_details)
 ]
 
 column_align = {
@@ -62,6 +63,7 @@ column_align = {
     'QR?': 'center',
     'Paid': 'center',
     'Price categories': 'left',
+    'Children': 'left',
 }
 
 
