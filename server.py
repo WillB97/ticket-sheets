@@ -28,7 +28,7 @@ OLD_ORDER_DATE = ''
 TICKET_PRICES: Dict[str, Dict[str, Dict[str, float]]] = {}
 
 
-def insert_html_newlines(value: str) -> str:
+def insert_html_newlines(value: str, booking: Dict[str, str]) -> str:
     return Markup(value.replace('\n', '<br>'))
 
 

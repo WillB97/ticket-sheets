@@ -8,20 +8,20 @@ from datetime import datetime
 
 
 ## Field conversion functions ##
-def simplify_product(value: str) -> str:
+def simplify_product(value: str, booking: Dict[str, str]) -> str:
     value = value.replace('Weekend', 'w/e')
     value = value.replace('- Day Ticket', '')
     value = value.replace('Ticket', '')
     return value.strip()
 
 
-def simplify_date(value: str) -> str:
+def simplify_date(value: str, booking: Dict[str, str]) -> str:
     value_clean = re.sub(r'([0-9]+)(st|nd|rd|th)', r'\1', value)
     date_value = datetime.strptime(value_clean, '%A %B %d %Y %H:%M %p')
     return date_value.strftime('%a %d/%m')
 
 
-def tidy_price(value: str) -> str:
+def tidy_price(value: str, booking: Dict[str, str]) -> str:
     return value.replace('&pound;', '')
 
 
@@ -117,7 +117,7 @@ def format_booking_row(booking: Dict[str, str]) -> List[str]:
         field_value = booking[input_column]
 
         if conversion is not None:
-            field_value = conversion(field_value)
+            field_value = conversion(field_value, booking=booking)
 
         booking_output.append(field_value)
 
