@@ -41,6 +41,7 @@ table_configuration = [
     # (<input column heading>, <output column label>, <optional conversion function>),
     ('Order ID', 'Order', None),
     ('Booking ID', 'Booking', None),
+    ('Start date', 'Train', parse_ticket_sheet.parse_train_time),
     ('Customer first name', 'First name', None),
     ('Customer last name', 'Last name', None),
     ('Quantity', 'Qty.', None),
@@ -55,6 +56,7 @@ table_configuration = [
 column_align = {
     'Order': 'center',
     'Booking': 'center',
+    'Train': 'center',
     'First name': 'right',
     'Last name': 'left',
     'Qty.': 'center',
