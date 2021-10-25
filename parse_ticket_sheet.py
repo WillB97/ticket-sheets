@@ -26,7 +26,7 @@ def tidy_price(value: str, booking: Dict[str, str]) -> str:
 
 
 # TODO different format w/ prices
-def parse_ticket_types(value: str) -> str:
+def parse_ticket_types(value: str, booking: Dict[str, str]) -> str:
     ticket_strings = []
     tickets = value.splitlines()  # convert "Price categories" field to a list of tickets
 
