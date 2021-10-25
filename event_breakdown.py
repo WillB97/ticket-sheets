@@ -168,7 +168,7 @@ def subtotal_orders(
     for booking in bookings:
         booking_dict = dict(zip(labels, booking))  # map columns to label names
 
-        tickets = parse_tickets(booking_dict['Price categories'])
+        tickets = parse_tickets(booking_dict['Price categories'], booking=booking_dict)
         ticket_regular_rate = calculate_ticket_value(tickets, ticket_values)
         booking_price = float(booking_dict['Product price'].replace('&pound;', '').replace('£', ''))
         saving: float = max(0, ticket_regular_rate - booking_price)  # ignore negative savings
@@ -199,9 +199,19 @@ def subtotal_orders(
     )
 
 
-def parse_tickets(ticket_str: str) -> List[Tuple[str, int, float]]:
+def parse_tickets(ticket_str: str, booking: Dict[str, str]) -> List[Tuple[str, int, float]]:
     ticket_output = []
     tickets = ticket_str.splitlines()  # convert "Price categories" field to a list of tickets
+
+    if booking.get('Accompanying Adult'):
+        adults, adult_value = booking['Accompanying Adult'].split('£')
+        if adults != '0':
+            tickets.append(f"Adult: {adults} (£{adult_value})")
+
+    if booking.get('Accompanying Senior'):
+        seniors, senior_value = booking['Accompanying Senior'].split('£')
+        if seniors != '0':
+            tickets.append(f"Senior: {seniors} (£{senior_value})")
 
     for ticket in tickets:
         # each ticket line is in the format: <ticket name>: <quantity> (£<price>)
