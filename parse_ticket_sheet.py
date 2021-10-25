@@ -112,6 +112,7 @@ table_configuration = [
 
 column_sorts = {  # Use input column labels
     'Booking ID': 'ASC',
+    'Order ID': 'ASC',
     'Start date': 'DATE',
 }
 
