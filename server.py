@@ -87,7 +87,7 @@ def prepare_booking_table_values(processed_bookings, header, day_totals=None):
     for booking, original_booking in processed_bookings:
         if parse_ticket_sheet.GROUP_BOOKINGS_BY_DATE:
             booking_date = parse_ticket_sheet.date_sort_item(original_booking['Start date'])
-            if booking_date != last_seen_date:
+            if booking_date.date() != last_seen_date.date():
                 if (
                     last_seen_date != datetime(1970, 1, 1, 0, 0)
                     and day_totals is not None
