@@ -58,8 +58,8 @@ table_configuration = [
 ]
 
 column_sorts = {  # Use input column labels
-    'Booking ID': 'ASC',
     'Start date': 'DATE',
+    'Booking ID': 'ASC',
 }
 
 GROUP_BOOKINGS_BY_DATE = True
