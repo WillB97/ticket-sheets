@@ -83,6 +83,27 @@ def include_custom_tickets(value: str, booking: Dict[str, str]) -> str:
     return value
 
 
+def extract_present_details(value: str, booking: Dict[str, str]) -> str:
+    genders = value.splitlines()
+    gender_map: Dict[str, str] = dict([gender.split(':') for gender in genders])  # type: ignore
+
+    ages = booking['Child Age (Nov)'].splitlines() + booking['Child Age (Dec)'].splitlines()
+    age_map: Dict[str, str] = dict([age.split(':') for age in ages])  # type: ignore
+
+    age_symbols: Dict[str, str] = {}
+
+    for idx, age in age_map.items():
+        if 'to' in age and age.strip()[0] == '0':
+            age_symbols[idx] = 'U1'
+        else:
+            age_symbols[idx] = age.split()[0]
+
+    presents = []
+    for idx in gender_map.keys():
+        presents.append(f'{gender_map[idx][1]}{age_symbols[idx]}'.strip())
+    return ', '.join(presents)
+
+
 ## Output configuration ##
 table_configuration = [
     # (<input column heading>, <output column label>, <optional conversion function>),
@@ -96,6 +117,7 @@ table_configuration = [
     (None, 'QR?', None),
     ('Product price', 'Paid', tidy_price),
     ('Price categories', 'Price categories', include_custom_tickets),
+    ('Present Type', 'Presents', extract_present_details)
 ]
 
 column_sorts = {  # Use input column labels

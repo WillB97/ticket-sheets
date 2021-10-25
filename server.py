@@ -63,6 +63,7 @@ alpha_table_configuration = [
     ('Quantity', 'Qty.', None),
     ('Product price', 'Paid', parse_ticket_sheet.tidy_price),
     ('Price categories', 'Price categories', format_price_category),
+    ('Present Type', 'Children', parse_ticket_sheet.extract_present_details)
 ]
 
 column_align = {
@@ -77,7 +78,8 @@ column_align = {
     'Paid': 'center',
     'Price categories': 'left',
     'Train': 'center',
-    'Date': 'center'
+    'Date': 'center',
+    'Children': 'left',
 }
 
 
