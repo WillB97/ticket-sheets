@@ -29,6 +29,11 @@ OLD_ORDER_DATE = ''
 TICKET_PRICES: Dict[str, Dict[str, Dict[str, float]]] = {}
 
 
+def format_price_category(value: str, booking: Dict[str, str]) -> str:
+    value = parse_ticket_sheet.include_custom_tickets(value, booking)
+    return insert_html_newlines(value, booking)
+
+
 def insert_html_newlines(value: str, booking: Dict[str, str]) -> str:
     return Markup(value.replace('\n', '<br>'))
 
@@ -57,7 +62,7 @@ alpha_table_configuration = [
     ('Customer last name', 'Last name', None),
     ('Quantity', 'Qty.', None),
     ('Product price', 'Paid', parse_ticket_sheet.tidy_price),
-    ('Price categories', 'Price categories', insert_html_newlines),
+    ('Price categories', 'Price categories', format_price_category),
 ]
 
 column_align = {

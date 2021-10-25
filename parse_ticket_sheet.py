@@ -52,6 +52,37 @@ def parse_train_date(value: str, booking: Dict[str, str]) -> str:
     return full_date_str.strftime('%d/%m')
 
 
+def include_custom_tickets(value: str, booking: Dict[str, str]) -> str:
+    if booking.get('Accompanying Adult'):
+        try:
+            adults, adult_value = booking['Accompanying Adult'].split('£')
+            if adults != '0':
+                value += f"\nAdult: {adults} (£{adult_value})"
+        except Exception:
+            pass
+
+    if booking.get('Accompanying Senior'):
+        try:
+            seniors, senior_value = booking['Accompanying Senior'].split('£')
+            if seniors != '0':
+                value += f"\nSenior: {seniors} (£{senior_value})"
+        except Exception:
+            pass
+
+    if booking.get('Custom fields prices') and 'age_of_child' in booking['Custom fields prices']:
+        discounts = re.findall(r'-£([0-9.]+)', booking['Custom fields prices'])
+        total_reduction = 0.0
+
+        for discount in discounts:
+            total_reduction += float(discount)
+
+        original_price = re.findall(r'Child: [0-9]+ \(£([0-9.]+)\)', value)[0]
+        new_price = float(original_price) - total_reduction
+        value = re.sub(r'Child: ([0-9]+) \(£([0-9.]+)\)', f'Child: \\1 (£{new_price:.2f})', value)
+
+    return value
+
+
 ## Output configuration ##
 table_configuration = [
     # (<input column heading>, <output column label>, <optional conversion function>),
@@ -64,7 +95,7 @@ table_configuration = [
     (None, 'Infants', None),
     (None, 'QR?', None),
     ('Product price', 'Paid', tidy_price),
-    ('Price categories', 'Price categories', None),
+    ('Price categories', 'Price categories', include_custom_tickets),
 ]
 
 column_sorts = {  # Use input column labels
