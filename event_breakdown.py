@@ -4,8 +4,10 @@ import csv
 import argparse
 from typing import Dict, List, Tuple, NamedTuple
 from pathlib import Path
-from datetime import datetime
-from collections import defaultdict
+from datetime import datetime, date as dt_date
+from collections import defaultdict, Counter
+
+from parse_ticket_sheet import extract_present_details, date_sort_item
 
 
 class BookingSubTotal(NamedTuple):
@@ -256,6 +258,35 @@ def ticket_extra_cost(tickets: List[Tuple[str, int, float]], standard_prices: Di
         pass
 
     return extra_cost
+
+
+def present_breakdown(bookings: Bookings, labels: List[str]) -> Dict[dt_date, Dict[str, int]]:
+    presents = defaultdict(list)
+    for booking in bookings:
+        booking_dict = dict(zip(labels, booking))  # map columns to label names
+
+        present_str = extract_present_details(booking_dict['Present Type'], booking_dict)
+        present_list = [present.strip() for present in present_str.split(',')]
+        train_date = date_sort_item(booking_dict['Start date'])
+        for present in present_list:
+            if present != '':
+                presents[train_date.date()].append(present)
+
+    present_summary: Dict[dt_date, Dict[str, int]] = {}
+
+    for day in presents.keys():
+        present_summary[day] = Counter(presents[day])
+
+    return present_summary
+
+
+def present_totals(present_breakdown: Dict[dt_date, Dict[str, int]]) -> Dict[str, int]:
+    totals: Dict[str, int] = defaultdict(int)
+    for day_totals in present_breakdown.values():
+        for present, qty in day_totals.items():
+            totals[present] += qty
+
+    return totals
 
 
 def print_totals(totals: BookingsBreakdown) -> None:
