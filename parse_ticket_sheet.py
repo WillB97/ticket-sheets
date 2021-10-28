@@ -109,6 +109,10 @@ def parse_train_time(value: str, booking: Dict[str, str]) -> str:
     return full_date_str.strftime('%H:%M')
 
 
+def remove_custom_price(value: str, booking: Dict[str, str]) -> str:
+    return value.split('£')[0]
+
+
 ## Output configuration ##
 table_configuration = [
     # (<input column heading>, <output column label>, <optional conversion function>),
