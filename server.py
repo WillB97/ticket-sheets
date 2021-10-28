@@ -44,13 +44,11 @@ table_configuration = [
     ('Start date', 'Train', parse_ticket_sheet.parse_train_time),
     ('Customer first name', 'First name', None),
     ('Customer last name', 'Last name', None),
-    ('Quantity', 'Qty.', None),
-    (None, 'Issued', None),
-    (None, 'Infants', None),
-    (None, 'QR?', None),
+    ('Accompanying Adult', 'Adults', parse_ticket_sheet.remove_custom_price),
+    ('Accompanying Senior', 'Seniors', parse_ticket_sheet.remove_custom_price),
+    ('Quantity', Markup('Grotto<br>passes'), None),
     ('Product price', 'Paid', parse_ticket_sheet.tidy_price),
-    ('Price categories', 'Price categories', format_price_category),
-    ('Present Type', 'Children', parse_ticket_sheet.extract_present_details)
+    ('Present Type', 'Presents', parse_ticket_sheet.extract_present_details)
 ]
 
 column_align = {
@@ -59,13 +57,11 @@ column_align = {
     'Train': 'center',
     'First name': 'right',
     'Last name': 'left',
-    'Qty.': 'center',
-    'Issued': 'center',
-    'Infants': 'center',
-    'QR?': 'center',
+    'Adults': 'center',
+    'Seniors': 'center',
+    Markup('Grotto<br>passes'): 'center',
     'Paid': 'center',
-    'Price categories': 'left',
-    'Children': 'left',
+    'Presents': 'left'
 }
 
 
