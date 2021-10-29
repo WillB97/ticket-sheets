@@ -72,7 +72,9 @@ Hide Totals</button>
                 <td class="text-center"><!-- total income --><b>{{"%.2f"|format(row.data.total_cost)}}</b></td>
                 <td><!-- ticket totals -->
                     {% for ticket, qty in row.data.ticket_totals.items() %}
+                    {% if ticket in ['Child', 'Infant'] %}
                     {{ticket}}: {{qty}}<br>
+                    {% endif %}
                     {% endfor %}
                 </td>
             {% else %}
