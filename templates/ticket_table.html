@@ -68,7 +68,7 @@ Hide Totals</button>
                 <td colspan="2" class="text-center"><b>Orders:</b> {{row.data.num_orders}}</td>
                 <td class="text-center"><b>{{row.data.ticket_totals['Adult']|default(0)}}</b></td>
                 <td class="text-center"><b>{{row.data.ticket_totals['Senior']|default(0)}}</b></td>
-                <td class="text-center"><b>{{row.data.ticket_totals['Child']}}</b></td>
+                <td class="text-center"><b>{{row.data.ticket_totals['Child'] + row.data.ticket_totals['Infant']}}</b></td>
                 <td class="text-center"><!-- total income --><b>{{"%.2f"|format(row.data.total_cost)}}</b></td>
                 <td><!-- ticket totals -->
                     {% for ticket, qty in row.data.ticket_totals.items() %}
