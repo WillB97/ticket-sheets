@@ -110,7 +110,14 @@ def parse_train_time(value: str, booking: Dict[str, str]) -> str:
 
 
 def remove_custom_price(value: str, booking: Dict[str, str]) -> str:
-    return value.split('£')[0]
+    val_str = value.split('£')[0]
+    try:
+        return str(int(val_str))
+    except ValueError:
+        if val_str == '':
+            return '0'
+        else:
+            return 'ERR'
 
 
 ## Output configuration ##
