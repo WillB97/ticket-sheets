@@ -224,8 +224,8 @@ def parse_tickets(ticket_str: str, booking: Dict[str, str]) -> List[Tuple[str, i
         ticket_qty = int(ticket_fields[0])
         ticket_price = float(ticket_fields[1][2:-1])
 
-        if ticket_name == 'Child' and ticket_qty > 1:
-            ticket_output.append(('Family Child', ticket_qty, ticket_price))
+        if ticket_name == 'Child':
+            ticket_output.append(('Child', ticket_qty, ticket_price))
         else:
             ticket_output.append((ticket_name, ticket_qty, ticket_price))
 
