@@ -260,7 +260,7 @@ def ticket_extra_cost(tickets: List[Tuple[str, int, float]], standard_prices: Di
     return extra_cost
 
 
-def present_breakdown(bookings: Bookings, labels: List[str]) -> Dict[dt_date, Dict[str, int]]:
+def present_breakdown(bookings: Bookings, labels: List[str]) -> Dict[str, Dict[str, Dict[str, int]]]:
     presents = defaultdict(list)
     for booking in bookings:
         booking_dict = dict(zip(labels, booking))  # map columns to label names
@@ -270,23 +270,31 @@ def present_breakdown(bookings: Bookings, labels: List[str]) -> Dict[dt_date, Di
         train_date = date_sort_item(booking_dict['Start date'])
         for present in present_list:
             if present != '':
-                presents[train_date.date()].append(present)
+                presents[train_date].append(present)
 
-    present_summary: Dict[dt_date, Dict[str, int]] = {}
+    present_age_summary: Dict[str, Dict[str, int]] = defaultdict(Counter)
+    present_train_summary: Dict[str, Dict[str, int]] = defaultdict(dict)
 
-    for day in presents.keys():
-        present_summary[day] = Counter(presents[day])
+    for date_train, train_presents in presents.items():
+        day = date_train.strftime('%d/%m/%y')
+        train = date_train.strftime('%H:%M')
 
-    return present_summary
+        present_age_summary[day].update(Counter(train_presents))
+        present_train_summary[day][train] = len(train_presents)
+
+    return {
+        'by-age': {k: dict(v) for k, v in present_age_summary.items()},
+        'by-train': dict(present_train_summary)
+    }
 
 
-def present_totals(present_breakdown: Dict[dt_date, Dict[str, int]]) -> Dict[str, int]:
+def present_totals(present_age_breakdown: Dict[dt_date, Dict[str, int]]) -> Dict[str, int]:
     totals: Dict[str, int] = defaultdict(int)
-    for day_totals in present_breakdown.values():
+    for day_totals in present_age_breakdown.values():
         for present, qty in day_totals.items():
             totals[present] += qty
 
-    return totals
+    return dict(totals)
 
 
 def print_totals(totals: BookingsBreakdown) -> None:
