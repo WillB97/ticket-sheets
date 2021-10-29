@@ -82,6 +82,29 @@ column_align = {
     'Date': 'center'
 }
 
+train_dates = [
+    '27/11/21',
+    '28/11/21',
+    '04/12/21',
+    '05/12/21',
+    '11/12/21',
+    '12/12/21',
+    '18/12/21',
+    '19/12/21'
+]
+train_times = [
+    '10:30',
+    '11:00',
+    '11:30',
+    '12:00',
+    '12:30',
+    '13:30',
+    '14:00',
+    '14:30',
+    '15:00',
+    '15:30'
+]
+
 
 def parse_bookings(raw_data):
     parsed_bookings = []
@@ -450,8 +473,12 @@ def ticket_breakdown():
     except IndexError:
         # no bookings in parsed_bookings
         breakdown = {}
+        present_breakdown = None
+        present_totals = None
     else:
         breakdown = prepare_ticket_breakdown(filtered_bookings, labels)
+        present_breakdown = event_breakdown.present_breakdown(filtered_bookings, labels)
+        present_totals = event_breakdown.present_totals(present_breakdown['by-age'])
 
     return render_template(
         'ticket_breakdown.html',
@@ -464,6 +491,18 @@ def ticket_breakdown():
         csv_uploaded=session.get('csv_uploaded'),
         breakdown=breakdown,
         totals=grand_total_orders(breakdown),
+        present_breakdown=present_breakdown,
+        present_totals=present_totals,
+        times=train_times,
+        dates=train_dates,
+        ages=[
+            'BU1', 'B1', 'B2', 'B3', 'B4',
+            'B5', 'B6', 'B7', 'B8', 'B9',
+            'B10', 'B11', 'B12', 'B13', 'B14',
+            'GU1', 'G1', 'G2', 'G3', 'G4',
+            'G5', 'G6', 'G7', 'G8', 'G9',
+            'G10', 'G11', 'G12', 'G13', 'G14'
+        ],
         active='breakdown'
     )
 

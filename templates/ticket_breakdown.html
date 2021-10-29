@@ -83,6 +83,52 @@
     </button>
 </div>
 
+<hr>
+<div>
+    <h2 style="text-align: center;">Presents by Train</h2>
+    <table class="table table-bordered table-sm w-auto mx-auto">
+        <thead><tr>
+            <th></th>
+            {% for train in times %}
+            <th class="text-center" scope="col">{{train}}</th>
+            {% endfor %}
+        </tr></thead>
+        <tbody>{% for date in dates %}
+            <tr>
+                <td class="text-center"><b>{{date}}</b></td>
+            {% for train in times %}
+                <td class="text-center">{{present_breakdown['by-train'][date][train] | default(0)}}</td>
+            {% endfor %}</tr>
+        {% endfor %}</tbody>
+    </table>
+</div>
+<div class="table-responsive">
+    <h2 style="text-align: center;">Presents by Age</h2>
+    <table class="table table-bordered table-sm w-auto mx-auto">
+        <thead><tr>
+            <th></th>
+            {% for age in ages %}
+            <th class="text-center" scope="col">{{age}}</th>
+            {% endfor %}
+        </tr></thead>
+        <tbody>{% for date in dates %}
+            <tr>
+                <td class="text-center"><b>{{date}}</b></td>
+                {% for age in ages %}
+                    <td class="text-center">{{present_breakdown['by-age'][date][age] | default(0)}}</td>
+                {% endfor %}
+            </tr>
+        {% endfor %}
+            <tr>
+            <td class="text-center"><b>Totals</b></td>
+            {% for age in ages %}
+                <td class="text-center">{{present_totals[age] | default(0)}}</td>
+            {% endfor %}
+            </tr>
+        </tbody>
+    </table>
+</div>
+
 <div class="modal" id="priceModal">
     <div class="modal-dialog">
         <div class="modal-content">
