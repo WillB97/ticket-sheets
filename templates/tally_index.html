@@ -1,0 +1,8 @@
+{% extends "header.html" %}
+
+{% block content %}
+<h2>Select Date:</h2>
+{% for date in dates %}
+<a href="/tally/{{date}}" class="btn btn-info" role="button">{{date}}</a>
+{% endfor %}
+{% endblock %}
