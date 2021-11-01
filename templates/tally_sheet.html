@@ -1,6 +1,45 @@
 {% extends "header.html" %}
 
 {% block content %}
-<code>{{tally_data}}</code>
-<pre>{{tally_spaces}}</pre>
+<table class="w-100" style="table-layout: fixed">
+    <tr>
+        <td class="text-left"><b>SWINDON AND CRICKLADE RAILWAY</b></td>
+        <td class="text-center">Exported at <b>{{ exported_at }}</b></td>
+        <td class="text-center">Up to Order ID <b>{{ max_order_id }}</b></td>
+
+    </tr>
+</table>
+<table class="w-100" style="table-layout: fixed">
+    <tr>
+        <td class="text-left">Santa Tally Sheet for: <b>{{ date }}</b></td>
+        <td class="text-center">Pre-Book Children: <b>{{ num_presents }}</b></td>
+    </tr>
+</table>
+<div class="table-responsive">
+    <table class="table table-bordered table-hover table-sm">
+        <thead>
+            <tr>
+                <th class="text-center" scope="col">#</th>
+            {% for train in train_times %}
+                <th class="text-center" scope="col">{{ train }}</th>
+            {% endfor %}
+            </tr>
+        </thead>
+        <tbody>
+        {% for row in tally_data %}
+            <tr>
+                <td class="text-center">{{ loop.index }}</td>
+                {% for field in row %}
+                <td class="text-center"
+                    {% if field['train_limit'] %}style="border-bottom:4px solid red !important"{% else %}
+                        {% if field['end_family'] %}style="border-bottom:4px solid black !important"{% endif %}
+                    {% endif %}
+                >{{ field['present'] }}</td>
+                {% endfor %}
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+</div>
+
 {% endblock %}
