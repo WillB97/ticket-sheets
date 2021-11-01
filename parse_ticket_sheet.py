@@ -109,6 +109,11 @@ def parse_train_time(value: str, booking: Dict[str, str]) -> str:
     return full_date_str.strftime('%H:%M')
 
 
+def parse_train_date(value: str, booking: Dict[str, str]) -> str:
+    full_date_str = date_sort_item(value)
+    return full_date_str.strftime('%d/%m')
+
+
 def remove_custom_price(value: str, booking: Dict[str, str]) -> str:
     val_str = value.split('£')[0]
     try:
