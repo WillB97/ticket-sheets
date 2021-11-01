@@ -301,6 +301,38 @@ def generate_tally_data(processed_bookings):
     return dict(tally_data)
 
 
+def render_tally_data(tally_data):
+    # data[row][column] = {'present':'B3', 'end_family': False, 'order_id':'10000'}
+    row_counter = {train: 0 for train in train_times}
+    data = [
+        [
+            {'present': '', 'end_family': False, 'train_limit': False, 'order_id': ''}
+            for _ in train_times
+        ]
+        for idx in range(26)
+    ]
+
+    for train, orders in tally_data.items():
+        for order_id, presents, _ in orders:
+            for present in presents:
+                row = row_counter[train]
+                column = train_times.index(train)
+                data[row][column] = {
+                    'present': present,
+                    'end_family': False,
+                    'order_id': order_id,
+                    'train_limit': False
+                }
+                row_counter[train] += 1
+            data[row][column]['end_family'] = True
+
+    for train, spaces in train_spaces.items():
+        column = train_times.index(train)
+        data[spaces - 1][column]['train_limit'] = True
+
+    return data
+
+
 @app.before_request
 def load_fresh_config():
     """
@@ -591,18 +623,31 @@ def tally_sheet(date):
 
     parsed_bookings = parse_bookings(orders)
 
-    tally_data = generate_tally_data(parsed_bookings)[date]
+    raw_tally_data = generate_tally_data(parsed_bookings)[date]
 
-    tally_used = {}
-    for time, orders in tally_data.items():
-        tally_used[time] = sum(slots for _, _, slots in orders)
+    tally_data = render_tally_data(raw_tally_data)
+    num_presents = sum(
+        num_presents
+        for train, orders in raw_tally_data.items()
+        for _, _, num_presents in orders
+    )
+    max_order_id = 0
+    for _, order in parsed_bookings:
+        max_order_id = max(max_order_id, int(order['Order ID']))
 
-    tally_spaces = {time: (train_spaces[time] - used) for time, used in tally_used.items()}
+    tally_date = datetime.today().replace(
+        day=int(date.split('/')[0]),
+        month=int(date.split('/')[1])
+    )
 
     return render_template(
         'tally_sheet.html',
+        train_times=train_times,
         tally_data=tally_data,
-        tally_spaces=tally_spaces,
+        date=tally_date.strftime('%a %m %b'),
+        num_presents=num_presents,
+        exported_at=datetime.now().strftime('%m-%b %H:%M'),
+        max_order_id=max_order_id,
         active='tally'
     )
 
