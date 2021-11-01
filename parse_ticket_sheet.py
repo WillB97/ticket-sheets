@@ -120,6 +120,30 @@ def remove_custom_price(value: str, booking: Dict[str, str]) -> str:
             return 'ERR'
 
 
+def include_additional_adults(value: str, booking: Dict[str, str], field='Adult'):
+    value = remove_custom_price(value, booking)
+    if 'Additional' in booking['Product title']:
+        for ticket in booking['Price categories'].splitlines():
+            ticket_fields = ticket.split()
+            ticket_name = ticket_fields[0][:-1]
+            ticket_qty = int(ticket_fields[1])
+
+            if ticket_name == field:
+                return str(ticket_qty)
+        return '0'
+    return value
+
+
+def include_additional_seniors(value: str, booking: Dict[str, str]):
+    return include_additional_adults(value, booking, field='Senior')
+
+
+def remove_additional_adults(value: str, booking: Dict[str, str]):
+    if 'Additional' in booking['Product title']:
+        return '0'
+    return value
+
+
 ## Output configuration ##
 table_configuration = [
     # (<input column heading>, <output column label>, <optional conversion function>),

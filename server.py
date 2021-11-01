@@ -45,9 +45,9 @@ table_configuration = [
     ('Start date', 'Train', parse_ticket_sheet.parse_train_time),
     ('Customer first name', 'First name', None),
     ('Customer last name', 'Last name', None),
-    ('Accompanying Adult', 'Adults', parse_ticket_sheet.remove_custom_price),
-    ('Accompanying Senior', 'Seniors', parse_ticket_sheet.remove_custom_price),
-    ('Quantity', Markup('Grotto<br>passes'), None),
+    ('Accompanying Adult', 'Adults', parse_ticket_sheet.include_additional_adults),
+    ('Accompanying Senior', 'Seniors', parse_ticket_sheet.include_additional_seniors),
+    ('Quantity', Markup('Grotto<br>passes'), parse_ticket_sheet.remove_additional_adults),
     ('Product price', 'Paid', parse_ticket_sheet.tidy_price),
     ('Present Type', 'Presents', parse_ticket_sheet.extract_present_details)
 ]
