@@ -104,6 +104,18 @@ train_times = [
     '15:00',
     '15:30'
 ]
+train_spaces = {
+    '10:30': 15,
+    '11:00': 20,
+    '11:30': 20,
+    '12:00': 20,
+    '12:30': 15,
+    '13:30': 20,
+    '14:00': 20,
+    '14:30': 20,
+    '15:00': 20,
+    '15:30': 20
+}
 
 
 def parse_bookings(raw_data):
@@ -254,6 +266,39 @@ def render_tickets_error(error, err_str=None):
         error=error,
         error_string=err_str
     )
+
+
+def generate_tally_data(processed_bookings):
+    tally_data = {}
+
+    formatted_labels = [label for _, label, _ in table_configuration]
+    for formatted_booking_vals, raw_booking in processed_bookings:
+        formatted_booking = dict(zip(formatted_labels, formatted_booking_vals))
+
+        date = parse_ticket_sheet.date_sort_item(raw_booking['Start date']).strftime('%d/%m')
+        train = formatted_booking['Train']
+        order_id = raw_booking['Order ID']
+        if formatted_booking['Presents'].strip() != '':
+            presents = [x.strip() for x in formatted_booking['Presents'].split(',')]
+        else:
+            presents = []
+
+        try:
+            tally_data[date][train]
+        except KeyError:
+            try:
+                tally_data[date]
+            except KeyError:
+                tally_data[date] = {}
+            tally_data[date][train] = []
+
+        tally_data[date][train].append((
+            order_id,
+            presents,
+            len(presents)
+        ))
+
+    return dict(tally_data)
 
 
 @app.before_request
@@ -504,6 +549,61 @@ def ticket_breakdown():
             'G10', 'G11', 'G12', 'G13', 'G14'
         ],
         active='breakdown'
+    )
+
+
+@app.route('/tally')
+def tally_index():
+    try:
+        orders = session['csv_data']
+    except KeyError:
+        return render_tickets_error("Please upload a CSV")
+
+    if not orders:
+        return render_tickets_error("No Ticket Data Found")
+
+    # Setup column layout & filter
+    parse_ticket_sheet.table_configuration = table_configuration
+    parse_ticket_sheet.BOOKING_FILTER_STRING = FILTER_STRING
+
+    parsed_bookings = parse_bookings(orders)
+
+    return render_template(
+        'tally_index.html',
+        dates=generate_tally_data(parsed_bookings).keys(),
+        active='tally'
+    )
+
+
+@app.route('/tally/<path:date>')
+def tally_sheet(date):
+    try:
+        orders = session['csv_data']
+    except KeyError:
+        return render_tickets_error("Please upload a CSV")
+
+    if not orders:
+        return render_tickets_error("No Ticket Data Found")
+
+    # Setup column layout & filter
+    parse_ticket_sheet.table_configuration = table_configuration
+    parse_ticket_sheet.BOOKING_FILTER_STRING = FILTER_STRING
+
+    parsed_bookings = parse_bookings(orders)
+
+    tally_data = generate_tally_data(parsed_bookings)[date]
+
+    tally_used = {}
+    for time, orders in tally_data.items():
+        tally_used[time] = sum(slots for _, _, slots in orders)
+
+    tally_spaces = {time: (train_spaces[time] - used) for time, used in tally_used.items()}
+
+    return render_template(
+        'tally_sheet.html',
+        tally_data=tally_data,
+        tally_spaces=tally_spaces,
+        active='tally'
     )
 
 
