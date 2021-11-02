@@ -34,6 +34,7 @@
                     {% if field['train_limit'] %}style="border-bottom:4px solid red !important"{% else %}
                         {% if field['end_family'] %}style="border-bottom:4px solid black !important"{% endif %}
                     {% endif %}
+                    data-toggle="popover" data-content="Order ID: {{field['order_id']}}" data-placement="top"
                 >{{ field['present'] }}</td>
                 {% endfor %}
             </tr>
@@ -42,4 +43,9 @@
     </table>
 </div>
 
+<script>
+    $(document).ready(function(){
+      $('[data-toggle="popover"]').popover();
+    });
+</script>
 {% endblock %}
