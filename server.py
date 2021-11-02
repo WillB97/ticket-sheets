@@ -645,9 +645,9 @@ def tally_sheet(date):
         'tally_sheet.html',
         train_times=train_times,
         tally_data=tally_data,
-        date=tally_date.strftime('%a %m %b'),
+        date=tally_date.strftime('%a %d %b'),
         num_presents=num_presents,
-        exported_at=datetime.now().strftime('%m-%b %H:%M'),
+        exported_at=datetime.now().strftime('%d-%b %H:%M'),
         max_order_id=max_order_id,
         active='tally'
     )
