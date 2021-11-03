@@ -523,6 +523,7 @@ def alphabetical_orders():
             'old_date': OLD_ORDER_DATE,
         },
         csv_name=session.get('csv_name'),
+        csv_uploaded=session.get('csv_uploaded'),
         no_totals=True,
         show_filter=True,
         active='alpha'
@@ -603,6 +604,8 @@ def tally_index():
 
     return render_template(
         'tally_index.html',
+        csv_name=session.get('csv_name'),
+        csv_uploaded=session.get('csv_uploaded'),
         dates=generate_tally_data(parsed_bookings).keys(),
         active='tally'
     )
@@ -643,6 +646,8 @@ def tally_sheet(date):
 
     return render_template(
         'tally_sheet.html',
+        csv_name=session.get('csv_name'),
+        csv_uploaded=session.get('csv_uploaded'),
         train_times=train_times,
         tally_data=tally_data,
         date=tally_date.strftime('%a %d %b'),
