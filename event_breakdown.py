@@ -206,12 +206,18 @@ def parse_tickets(ticket_str: str, booking: Dict[str, str]) -> List[Tuple[str, i
     tickets = ticket_str.splitlines()  # convert "Price categories" field to a list of tickets
 
     if booking.get('Accompanying Adult'):
-        adults, adult_value = booking['Accompanying Adult'].split('£')
+        try:
+            adults, adult_value = booking['Accompanying Adult'].split('£')
+        except ValueError:
+            adults, adult_value = booking['Accompanying Adult'], '0.00'
         if adults != '0':
             tickets.append(f"Adult: {adults} (£{adult_value})")
 
     if booking.get('Accompanying Senior'):
-        seniors, senior_value = booking['Accompanying Senior'].split('£')
+        try:
+            seniors, senior_value = booking['Accompanying Senior'].split('£')
+        except ValueError:
+            seniors, senior_value = booking['Accompanying Senior'], '0.00'
         if seniors != '0':
             tickets.append(f"Senior: {seniors} (£{senior_value})")
 
@@ -222,7 +228,10 @@ def parse_tickets(ticket_str: str, booking: Dict[str, str]) -> List[Tuple[str, i
         ticket_fields = ticket_field_str.split()  # other fields are space-separated
 
         ticket_qty = int(ticket_fields[0])
-        ticket_price = float(ticket_fields[1][2:-1])
+        try:
+            ticket_price = float(ticket_fields[1][2:-1])
+        except IndexError:
+            ticket_price = 0.0
 
         if ticket_name == 'Child':
             infant_qty = 0

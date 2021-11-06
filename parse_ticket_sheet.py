@@ -100,7 +100,10 @@ def extract_present_details(value: str, booking: Dict[str, str]) -> str:
 
     presents = []
     for idx in gender_map.keys():
-        presents.append(f'{gender_map[idx][1]}{age_symbols[idx]}'.strip())
+        try:
+            presents.append(f'{gender_map[idx][1]}{age_symbols[idx]}'.strip())
+        except KeyError:
+            presents.append(f'{gender_map[idx][1]}XX'.strip())
     return ', '.join(presents)
 
 
