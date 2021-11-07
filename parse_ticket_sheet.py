@@ -87,7 +87,11 @@ def extract_present_details(value: str, booking: Dict[str, str]) -> str:
     genders = value.splitlines()
     gender_map: Dict[str, str] = dict([gender.split(':') for gender in genders])  # type: ignore
 
-    ages = booking['Child Age (Nov)'].splitlines() + booking['Child Age (Dec)'].splitlines()
+    ages = (
+        booking['Child Age (Nov)'].splitlines()
+        + booking['Child Age (Dec)'].splitlines()
+        + booking.get('Child Age (Non-internet)', '').splitlines()
+    )
     age_map: Dict[str, str] = dict([age.split(':') for age in ages])  # type: ignore
 
     age_symbols: Dict[str, str] = {}

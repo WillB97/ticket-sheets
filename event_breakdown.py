@@ -235,7 +235,11 @@ def parse_tickets(ticket_str: str, booking: Dict[str, str]) -> List[Tuple[str, i
 
         if ticket_name == 'Child':
             infant_qty = 0
-            presents = booking['Child Age (Nov)'].split('\n') + booking['Child Age (Dec)'].split('\n')
+            presents = (
+                booking['Child Age (Nov)'].split('\n')
+                + booking['Child Age (Dec)'].split('\n')
+                + booking.get('Child Age (Non-internet)', '').splitlines()
+            )
             for present in presents:
                 if '0 to 1 yr' in present or '1 to 2 yr' in present:
                     infant_qty += 1
