@@ -79,7 +79,11 @@ Hide Totals</button>
                 </td>
             {% else %}
                 {% for label in header %}
-                <td class="text-{{ align[label] }}">{{ row['booking'][label] }}</td>
+                    {% if label == "Paid" and row['booking']['walkin'] %}
+                    <td class="text-{{ align[label] }}">({{ row['booking'][label] }})</td>
+                    {% else %}
+                    <td class="text-{{ align[label] }}">{{ row['booking'][label] }}</td>
+                    {% endif %}
                 {% endfor %}
             {% endif %}
                 <td class="text-center d-print-none">

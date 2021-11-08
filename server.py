@@ -209,9 +209,12 @@ def prepare_booking_table_values(processed_bookings, header, day_totals=None):
                 })
                 last_seen_date = booking_date
 
+        booking_dict = dict(zip(header, booking))
+        booking_dict['walkin'] = (original_booking.get('walkin', False) == 'true')
+
         rendered_bookings.append({
             'booking_type': 'order',
-            'booking': dict(zip(header, booking)),
+            'booking': booking_dict,
         })
 
     if day_totals is not None:
