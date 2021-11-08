@@ -759,6 +759,8 @@ def load_config():
     OLD_ORDER_DATE = config_data['old order date']
     TICKET_PRICES = config_data.get('ticket prices', {})
 
+    parse_ticket_sheet.load_ticket_prices(TICKET_PRICES)
+
     if app.secret_key is None:
         if config_data.get('secret_key') is None:
             app.secret_key = urandom(24).hex()

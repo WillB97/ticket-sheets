@@ -156,6 +156,59 @@ def remove_additional_adults(value: str, booking: Dict[str, str]):
     return value
 
 
+TICKET_PRICES: Dict[str, Dict[str, Dict[str, float]]] = {}
+
+
+def load_ticket_prices(ticket_prices: Dict[str, Dict[str, Dict[str, float]]]):
+    global TICKET_PRICES
+    TICKET_PRICES = ticket_prices
+
+
+def calculate_walkin_price(value: str, booking: Dict[str, str]) -> str:
+    value_clean = float(tidy_price(value, booking))
+    if value_clean == 0.0:
+        booking['walkin'] = 'true'
+        try:
+            date = date_sort_item(booking['Start date']).strftime('%d/%m/%y')
+            event = booking['Product title']
+            prices = TICKET_PRICES.get(
+                f"{date} {event}",
+                {'event': {}}
+            )['event']
+
+            walkin_price = 0.0
+
+            # parse tickets
+            for ticket in booking['Price categories'].splitlines():
+                ticket_fields = ticket.split()
+                name = ticket_fields[0][:-1]
+                qty = int(ticket_fields[1])
+                walkin_price += prices.get(name, 0.0) * qty
+
+            # reduce infants
+            infants = booking.get('Child Age (Non-internet)', '').count('to')
+            infant_price = 6.0 if '11' == date.split('/')[1] else 7.0
+            walkin_price -= infant_price * infants
+
+            # include accompanying adults/seniors
+            for extra, ticket in [
+                ('Accompanying Adult', 'Adult'), ('Accompanying Senior', 'Senior')
+            ]:
+                try:
+                    walkin_price += (
+                        int(booking.get(extra, 0))
+                        * prices.get(ticket, 0.0)
+                    )
+                except ValueError:
+                    pass
+
+            return f"{walkin_price:.2f}"
+
+        except Exception:
+            print('Walkin parsing failed')
+    return f"{value_clean:.2f}"
+
+
 ## Output configuration ##
 table_configuration = [
     # (<input column heading>, <output column label>, <optional conversion function>),
