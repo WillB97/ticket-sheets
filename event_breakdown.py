@@ -7,8 +7,7 @@ from pathlib import Path
 from datetime import datetime, date as dt_date
 from collections import defaultdict, Counter
 
-from parse_ticket_sheet import extract_present_details, date_sort_item
-from server import calculate_walkin_price
+from parse_ticket_sheet import extract_present_details, date_sort_item, calculate_walkin_price
 
 
 class BookingSubTotal(NamedTuple):
