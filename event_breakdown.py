@@ -8,6 +8,7 @@ from datetime import datetime, date as dt_date
 from collections import defaultdict, Counter
 
 from parse_ticket_sheet import extract_present_details, date_sort_item
+from server import calculate_walkin_price
 
 
 class BookingSubTotal(NamedTuple):
@@ -172,7 +173,7 @@ def subtotal_orders(
 
         tickets = parse_tickets(booking_dict['Price categories'], booking=booking_dict)
         ticket_regular_rate = calculate_ticket_value(tickets, ticket_values)
-        booking_price = float(booking_dict['Product price'].replace('&pound;', '').replace('£', ''))
+        booking_price = float(calculate_walkin_price(booking_dict['Product price'], booking_dict))
         saving: float = max(0, ticket_regular_rate - booking_price)  # ignore negative savings
 
         total_value += booking_price

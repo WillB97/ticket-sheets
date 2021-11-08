@@ -38,6 +38,51 @@ def insert_html_newlines(value: str, booking: Dict[str, str]) -> str:
     return Markup(value.replace('\n', '<br>'))
 
 
+def calculate_walkin_price(value: str, booking: Dict[str, str]) -> str:
+    value_clean = float(parse_ticket_sheet.tidy_price(value, booking))
+    if value_clean == 0.0:
+        booking['walkin'] = 'true'
+        try:
+            date = event_breakdown.parse_date(booking['Start date']).strftime('%d/%m/%y')
+            event = booking['Product title']
+            prices = TICKET_PRICES.get(
+                f"{date} {event}",
+                {'event': {}}
+            )['event']
+
+            walkin_price = 0.0
+
+            # parse tickets
+            for ticket in booking['Price categories'].splitlines():
+                ticket_fields = ticket.split()
+                name = ticket_fields[0][:-1]
+                qty = int(ticket_fields[1])
+                walkin_price += prices.get(name, 0.0) * qty
+
+            # reduce infants
+            infants = booking.get('Child Age (Non-internet)', '').count('to')
+            infant_price = 6.0 if '11' == date.split('/')[1] else 7.0
+            walkin_price -= infant_price * infants
+
+            # include accompanying adults/seniors
+            for extra, ticket in [
+                ('Accompanying Adult', 'Adult'), ('Accompanying Senior', 'Senior')
+            ]:
+                try:
+                    walkin_price += (
+                        int(booking.get(extra, 0))
+                        * prices.get(ticket, 0.0)
+                    )
+                except ValueError:
+                    pass
+
+            return f"{walkin_price:.2f}"
+
+        except Exception:
+            print('Walkin parsing failed')
+    return f"{value_clean:.2f}"
+
+
 table_configuration = [
     # (<input column heading>, <output column label>, <optional conversion function>),
     ('Order ID', 'Order', None),
@@ -48,7 +93,7 @@ table_configuration = [
     ('Accompanying Adult', 'Adults', parse_ticket_sheet.include_additional_adults),
     ('Accompanying Senior', 'Seniors', parse_ticket_sheet.include_additional_seniors),
     ('Quantity', Markup('Grotto<br>passes'), parse_ticket_sheet.remove_additional_adults),
-    ('Product price', 'Paid', parse_ticket_sheet.tidy_price),
+    ('Product price', 'Paid', calculate_walkin_price),
     ('Present Type', 'Presents', parse_ticket_sheet.extract_present_details)
 ]
 
@@ -63,7 +108,7 @@ alpha_table_configuration = [
     ('Accompanying Adult', 'Adults', parse_ticket_sheet.include_additional_adults),
     ('Accompanying Senior', 'Seniors', parse_ticket_sheet.include_additional_seniors),
     ('Quantity', Markup('Grotto<br>passes'), parse_ticket_sheet.remove_additional_adults),
-    ('Product price', 'Paid', parse_ticket_sheet.tidy_price),
+    ('Product price', 'Paid', calculate_walkin_price),
     ('Present Type', 'Presents', parse_ticket_sheet.extract_present_details)
 ]
 
