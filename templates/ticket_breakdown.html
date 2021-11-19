@@ -129,6 +129,19 @@
     </table>
 </div>
 
+<hr>
+<h2 style="text-align: center;">Extra Stats</h2>
+<div style="text-align: center;">
+    <b>Most Expensive:</b> £{{ "%.2f"|format(extra_stats.max_price.price) }}
+    (<b>A:</b>{{extra_stats.max_price.adult}}, <b>S:</b>{{extra_stats.max_price.senior}},
+    <b>C:</b>{{extra_stats.max_price.child}}, <b>I:</b>{{extra_stats.max_price.infant}})  (Order:{{extra_stats.max_price.order}})<br>
+
+    <b>Most Presents:</b> {{extra_stats.max_presents.presents}}  (Order:{{extra_stats.max_presents.order}})<br>
+    <b>Average Order Makeup:</b> £{{ "%.2f"|format(extra_stats.avg_order.price) }}
+    <b>A:</b> {{"%.4f"|format(extra_stats.avg_order.adult)}}, <b>S:</b> {{"%.4f"|format(extra_stats.avg_order.senior)}},
+    <b>C:</b> {{"%.4f"|format(extra_stats.avg_order.child)}}, <b>I:</b> {{"%.4f"|format(extra_stats.avg_order.infant)}}<br>
+</div>
+
 <div class="modal" id="priceModal">
     <div class="modal-dialog">
         <div class="modal-content">

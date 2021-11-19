@@ -594,6 +594,7 @@ def ticket_breakdown():
 
     parsed_bookings = parse_bookings(orders)
     filtered_bookings = [booking[1].values() for booking in parsed_bookings]
+    header = [column[1] for column in parse_ticket_sheet.table_configuration]
 
     try:
         labels = parsed_bookings[0][1].keys()
@@ -606,6 +607,48 @@ def ticket_breakdown():
         breakdown = prepare_ticket_breakdown(filtered_bookings, labels)
         present_breakdown = event_breakdown.present_breakdown(filtered_bookings, labels)
         present_totals = event_breakdown.present_totals(present_breakdown['by-age'])
+        extra_stats = {
+            'max_price': {'price': 0, 'order': 0, 'adult': 0, 'senior': 0, 'child': 0, 'infant': 0},
+            'max_presents': {'presents': 0, 'order': 0},
+            'avg_order': {'price': 0, 'adult': 0, 'senior': 0, 'child': 0, 'infant': 0},
+        }
+        for order_vals, _ in parsed_bookings:
+            order = dict(zip(header, order_vals))
+
+            infant_qty = len([
+                1 for present in order['Presents'].split(', ')
+                if present in ['BU1', 'B1', 'GU1', 'G1']
+            ])
+            child_qty = int(order[Markup('Grotto<br>passes')]) - infant_qty
+
+            if float(order['Paid']) > extra_stats['max_price']['price']:
+                # new most expensive order
+                extra_stats['max_price'] = {
+                    'order': order['Order'],
+                    'price': float(order['Paid']),
+                    'adult': order['Adults'],
+                    'senior': order['Seniors'],
+                    'child': child_qty,
+                    'infant': infant_qty
+                }
+
+            if int(order[Markup('Grotto<br>passes')]) > extra_stats['max_presents']['presents']:
+                extra_stats['max_presents'] = {
+                    'order': order['Order'],
+                    'presents': int(order[Markup('Grotto<br>passes')])
+                }
+
+            extra_stats['avg_order']['price'] += float(order['Paid'])
+            extra_stats['avg_order']['adult'] += int(order['Adults'])
+            extra_stats['avg_order']['senior'] += int(order['Seniors'])
+            extra_stats['avg_order']['child'] += child_qty
+            extra_stats['avg_order']['infant'] += infant_qty
+
+        extra_stats['avg_order']['price'] /= len(parsed_bookings)
+        extra_stats['avg_order']['adult'] /= len(parsed_bookings)
+        extra_stats['avg_order']['senior'] /= len(parsed_bookings)
+        extra_stats['avg_order']['child'] /= len(parsed_bookings)
+        extra_stats['avg_order']['infant'] /= len(parsed_bookings)
 
     return render_template(
         'ticket_breakdown.html',
@@ -630,6 +673,7 @@ def ticket_breakdown():
             'G5', 'G6', 'G7', 'G8', 'G9',
             'G10', 'G11', 'G12', 'G13', 'G14'
         ],
+        extra_stats=extra_stats,
         active='breakdown'
     )
 
