@@ -249,7 +249,7 @@ def uploaded_tickets():
     try:
         f = request.files['fileupload']
 
-        csv_str = TextIOWrapper(f).read()
+        csv_str = TextIOWrapper(f, encoding='utf-8').read()
 
         data_list = list(csv.reader(csv_str.splitlines(keepends=True), delimiter=','))
 
