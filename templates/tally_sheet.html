@@ -39,6 +39,20 @@
                 {% endfor %}
             </tr>
         {% endfor %}
+        <thead>
+            <tr>
+                <th class="text-center">Fam</td>
+            {% for families in num_family %}
+                <th class="text-center">{{ families }}</td>
+            {% endfor %}
+            </tr>
+            <tr>
+                <th class="text-center">Child</td>
+            {% for child in num_child %}
+                <th class="text-center">{{ child }}</td>
+            {% endfor %}
+            </tr>
+        </thead>
         </tbody>
     </table>
 </div>

@@ -361,7 +361,12 @@ def render_tally_data(tally_data):
         for idx in range(26)
     ]
 
+    num_child = {train: 0 for train in train_times}
+    num_family = {train: 0 for train in train_times}
+
     for train, orders in tally_data.items():
+        num_family[train] = len([1 for _, presents, _ in orders if len(presents) > 0])
+        num_child[train] = sum(len(presents) for _, presents, _ in orders)
         for order_id, presents, _ in orders:
             for present in presents:
                 row = row_counter[train]
@@ -379,7 +384,7 @@ def render_tally_data(tally_data):
         column = train_times.index(train)
         data[spaces - 1][column]['train_limit'] = True
 
-    return data
+    return data, list(num_family.values()), list(num_child.values())
 
 
 @app.before_request
@@ -721,7 +726,7 @@ def tally_sheet(date):
 
     raw_tally_data = generate_tally_data(parsed_bookings)[date]
 
-    tally_data = render_tally_data(raw_tally_data)
+    tally_data, num_family, num_child = render_tally_data(raw_tally_data)
     num_presents = sum(
         num_presents
         for train, orders in raw_tally_data.items()
@@ -746,6 +751,8 @@ def tally_sheet(date):
         num_presents=num_presents,
         exported_at=datetime.now().strftime('%d-%b %H:%M'),
         max_order_id=max_order_id,
+        num_family=num_family,
+        num_child=num_child,
         active='tally'
     )
 
