@@ -97,7 +97,11 @@
             <tr>
                 <td class="text-center"><b>{{date}}</b></td>
             {% for train in times %}
+                {% if present_breakdown['by-train'][date] is defined %}
                 <td class="text-center">{{present_breakdown['by-train'][date][train] | default(0)}}</td>
+                {% else %}
+                <td class="text-center">-</td>
+                {% endif %}
             {% endfor %}</tr>
         {% endfor %}</tbody>
     </table>
@@ -115,7 +119,11 @@
             <tr>
                 <td class="text-center"><b>{{date}}</b></td>
                 {% for age in ages %}
+                    {% if present_breakdown['by-age'][date] is defined %}
                     <td class="text-center">{{present_breakdown['by-age'][date][age] | default(0)}}</td>
+                    {% else %}
+                    <td class="text-center">-</td>
+                    {% endif %}
                 {% endfor %}
             </tr>
         {% endfor %}
