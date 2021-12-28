@@ -37,12 +37,12 @@ table_configuration = [
     # (<input column heading>, <output column label>, <optional conversion function>),
     ('Order ID', 'Order', None),
     ('Booking ID', 'Booking', None),
+    ('Start date', 'Train', parse_ticket_sheet.parse_train_time),
     ('Customer first name', 'First name', None),
     ('Customer last name', 'Last name', None),
     ('Quantity', 'Qty.', None),
     (None, 'Issued', None),
     (None, 'Infants', None),
-    (None, 'QR?', None),
     ('Product price', 'Paid', parse_ticket_sheet.tidy_price),
     ('Price categories', 'Price categories', insert_html_newlines),
 ]
@@ -55,6 +55,7 @@ alpha_table_configuration = [
     ('Start date', 'Train', parse_ticket_sheet.parse_train_time),
     ('Customer first name', 'First name', None),
     ('Customer last name', 'Last name', None),
+    ('Quantity', 'Qty.', None),
     ('Product price', 'Paid', parse_ticket_sheet.tidy_price),
     ('Price categories', 'Price categories', insert_html_newlines),
 ]
@@ -70,6 +71,7 @@ column_align = {
     'QR?': 'center',
     'Paid': 'center',
     'Price categories': 'left',
+    'Train': 'center',
     'Date': 'center'
 }
 
