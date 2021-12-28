@@ -42,6 +42,16 @@ def parse_ticket_types(value: str, booking: Dict[str, str]) -> str:
     return ', '.join(ticket_strings)
 
 
+def parse_train_time(value: str, booking: Dict[str, str]) -> str:
+    full_date_str = date_sort_item(value)
+    return full_date_str.strftime('%H:%M')
+
+
+def parse_train_date(value: str, booking: Dict[str, str]) -> str:
+    full_date_str = date_sort_item(value)
+    return full_date_str.strftime('%d/%m')
+
+
 ## Output configuration ##
 table_configuration = [
     # (<input column heading>, <output column label>, <optional conversion function>),

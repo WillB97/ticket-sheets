@@ -18,16 +18,38 @@
     </div>
 </form>
 
+{% if no_totals is not defined or no_totals == False %}
 <button
     type="button"
     class="btn btn-warning btn-block btn-sm"
     onclick="$('tr#total').remove();$(this).text('Totals Hidden');$(this).prop('disabled',true);$(this).addClass('btn-outline-dark')">
 Hide Totals</button>
+{% endif %}
+
+{% if show_filter is defined and show_filter == True %}
+<hr>
+<div class="input-group mb-2">
+    <label for="orderFilter" class="mr-sm-2">Filter:</label>
+    <input class="form-control mb-2 mr-sm-2" id="orderFilter" type="text" placeholder="Search..">
+</div>
+
+<script>
+    $(document).ready(function(){
+      $("#orderFilter").on("keyup", function() {
+        var value = $(this).val().toLowerCase();
+        $("#orders tbody tr").filter(function() {
+          $(this).toggle($(this).text().toLowerCase().indexOf(value) > -1)
+        });
+      });
+    });
+    </script>
+{% endif %}
+
 {% endblock %}
 
 {% block content %}
 <div class="table-responsive">
-    <table class="table table-bordered table-hover table-sm">
+    <table class="table table-bordered table-hover table-sm" id="orders">
         <thead>
             <tr>
             {% for label in header %}

@@ -47,6 +47,18 @@ table_configuration = [
     ('Price categories', 'Price categories', insert_html_newlines),
 ]
 
+alpha_table_configuration = [
+    # (<input column heading>, <output column label>, <optional conversion function>),
+    ('Order ID', 'Order', None),
+    ('Booking ID', 'Booking', None),
+    ('Start date', 'Date', parse_ticket_sheet.parse_train_date),
+    ('Start date', 'Train', parse_ticket_sheet.parse_train_time),
+    ('Customer first name', 'First name', None),
+    ('Customer last name', 'Last name', None),
+    ('Product price', 'Paid', parse_ticket_sheet.tidy_price),
+    ('Price categories', 'Price categories', insert_html_newlines),
+]
+
 column_align = {
     'Order': 'center',
     'Booking': 'center',
@@ -58,6 +70,7 @@ column_align = {
     'QR?': 'center',
     'Paid': 'center',
     'Price categories': 'left',
+    'Date': 'center'
 }
 
 
@@ -347,6 +360,54 @@ def ticket_table():
         csv_name=session.get('csv_name'),
         csv_uploaded=session.get('csv_uploaded'),
         active='tickets'
+    )
+
+
+@app.route('/alpha')
+def alphabetical_orders():
+    try:
+        orders = session['csv_data']
+    except KeyError:
+        return render_tickets_error("Please upload a CSV")
+
+    if not orders:
+        return render_tickets_error("No Ticket Data Found")
+
+    old_group_bookings = parse_ticket_sheet.GROUP_BOOKINGS_BY_DATE
+    old_sort_order = parse_ticket_sheet.column_sorts
+
+    try:
+        # Setup column layout & filter
+        parse_ticket_sheet.table_configuration = alpha_table_configuration
+        parse_ticket_sheet.BOOKING_FILTER_STRING = FILTER_STRING
+
+        parse_ticket_sheet.GROUP_BOOKINGS_BY_DATE = False
+        parse_ticket_sheet.column_sorts = {'Customer first name': 'ASC', 'Customer last name': 'ASC'}
+
+        header = [column[1] for column in parse_ticket_sheet.table_configuration]
+
+        parsed_bookings = parse_bookings(orders)
+        rendered_bookings = prepare_booking_table_values(parsed_bookings, header)
+    finally:
+        parse_ticket_sheet.GROUP_BOOKINGS_BY_DATE = old_group_bookings
+        parse_ticket_sheet.column_sorts = old_sort_order
+
+    return render_template(
+        'ticket_table.html',
+        header=header,
+        bookings=rendered_bookings,
+        align=column_align,
+        columns=len(header),
+        config={
+            'csv_url': CSV_URL,
+            'filter': FILTER_STRING,
+            'hideOld': HIDE_OLD_ORDERS,
+            'old_date': OLD_ORDER_DATE,
+        },
+        csv_name=session.get('csv_name'),
+        no_totals=True,
+        show_filter=True,
+        active='alpha'
     )
 
 
