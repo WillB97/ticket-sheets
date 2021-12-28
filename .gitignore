@@ -1,3 +1,4 @@
 config.json
 __pycache__
 flask_session
+venv
