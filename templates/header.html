@@ -33,6 +33,7 @@
 </nav>
 <div class="container-fluid d-print-none" style="margin-top:80px">
     {% if csv_name %}<br><h5 style="text-align: center;">Displaying orders from: <pre>{{csv_name}}</pre></h5>{% endif %}
+    {% if csv_uploaded %}<h6 style="text-align: center;">Last uploaded on: {{csv_uploaded}}</h6><br>{% endif %}
     {% block config %}{% endblock %}<br>
     <button type="button" class="btn btn-success btn-block btn-lg" onclick="window.print()">Print this page</button>
     <hr>

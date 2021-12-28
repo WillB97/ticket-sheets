@@ -264,6 +264,7 @@ def uploaded_tickets():
 
         session['csv_name'] = f.filename
         session['csv_data'] = data_list
+        session['csv_uploaded'] = datetime.now().strftime('%d-%b %H:%M')
         return redirect(url_for('ticket_table'))
     except KeyError:
         return render_template(
@@ -344,6 +345,7 @@ def ticket_table():
             'old_date': OLD_ORDER_DATE,
         },
         csv_name=session.get('csv_name'),
+        csv_uploaded=session.get('csv_uploaded'),
         active='tickets'
     )
 
@@ -381,6 +383,7 @@ def ticket_breakdown():
             'old_date': OLD_ORDER_DATE,
         },
         csv_name=session.get('csv_name'),
+        csv_uploaded=session.get('csv_uploaded'),
         breakdown=breakdown,
         totals=grand_total_orders(breakdown),
         active='breakdown'
