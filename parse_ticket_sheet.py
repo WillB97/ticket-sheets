@@ -108,7 +108,10 @@ def sort_bookings(bookings: List[List[str]], input_columns: List[str]) -> List[L
         if direction == 'DATE':
             bookings.sort(key=lambda x: date_sort_item(x[sort_index]))
         else:
-            bookings.sort(reverse=(direction == 'DESC'), key=lambda x: x[sort_index])
+            try:
+                bookings.sort(reverse=(direction == 'DESC'), key=lambda x: x[sort_index].lower())
+            except AttributeError:
+                bookings.sort(reverse=(direction == 'DESC'), key=lambda x: x[sort_index])
 
     return bookings
 
