@@ -22,7 +22,7 @@ def simplify_date(value: str, booking: Dict[str, str]) -> str:
 
 
 def tidy_price(value: str, booking: Dict[str, str]) -> str:
-    return value.replace('&pound;', '')
+    return value.replace('&pound;', '').replace('£', '')
 
 
 # TODO different format w/ prices

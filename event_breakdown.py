@@ -170,7 +170,7 @@ def subtotal_orders(
 
         tickets = parse_tickets(booking_dict['Price categories'])
         ticket_regular_rate = calculate_ticket_value(tickets, ticket_values)
-        booking_price = float(booking_dict['Product price'].replace('&pound;', ''))
+        booking_price = float(booking_dict['Product price'].replace('&pound;', '').replace('£', ''))
         saving: float = max(0, ticket_regular_rate - booking_price)  # ignore negative savings
 
         total_value += booking_price
