@@ -199,6 +199,7 @@ def generate_day_totals(breakdown):
 
 def grand_total_orders(breakdown):
     totals = {'total_value': 0, 'total_orders': 0, 'total_tickets': 0}
+    total_types = defaultdict(int)
 
     for date, day_bookings in breakdown.items():
         for event, event_bookings in day_bookings.items():
@@ -206,7 +207,14 @@ def grand_total_orders(breakdown):
             totals['total_orders'] += event_bookings.total_orders
             totals['total_tickets'] += sum(event_bookings.full_value_tickets.values())
             totals['total_tickets'] += sum(event_bookings.reduced_tickets.values())
+            for ticket, qty in event_bookings.full_value_tickets.items():
+                total_types[ticket] += qty
+            for ticket, qty in event_bookings.reduced_tickets.items():
+                total_types[ticket] += qty
 
+    total_types['Child'] += total_types['Family Child']
+    del total_types['Family Child']
+    totals['total_types'] = dict(total_types)
     return totals
 
 

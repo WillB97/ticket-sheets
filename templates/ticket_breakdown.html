@@ -71,6 +71,13 @@
     <b>Total Orders:</b> {{totals.total_orders}}<br>
     <b>Total Tickets:</b> {{totals.total_tickets}}<br>
     <br>
+    <table id='ticket-types' class="table table-bordered table-sm w-auto mx-auto">
+        <!-- <thead><tr><th></th><th></th></tr></thead> -->
+        {% for ticket, qty in totals.total_types.items() %}
+        <tr><td>{{ticket}}</td><td>{{qty}}</td></tr>
+        {% endfor %}
+    </table>
+    <br>
     <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#priceModal" id='priceModalOpen'>
         Set prices
     </button>
