@@ -94,7 +94,7 @@ def calculate_totals(
 
 
 def parse_date(date_str: str) -> datetime:
-    value_clean = re.sub(r'([0-9]+)(st|nd|rd|th)', r'\1', date_str)
+    value_clean = re.sub(r'([0-9]+)(st|nd|rd|th)', r'\1', date_str).replace(',', '')
     return datetime.strptime(value_clean, '%A %B %d %Y %H:%M %p')
 
 
