@@ -165,7 +165,10 @@ def load_ticket_prices(ticket_prices: Dict[str, Dict[str, Dict[str, float]]]):
 
 
 def calculate_walkin_price(value: str, booking: Dict[str, str]) -> str:
-    value_clean = float(tidy_price(value, booking))
+    try:
+        value_clean = float(tidy_price(value, booking))
+    except ValueError:
+        value_clean = 0.0
     if value_clean == 0.0:
         booking['walkin'] = 'true'
         try:
