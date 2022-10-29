@@ -39,7 +39,10 @@ def insert_html_newlines(value: str, booking: Dict[str, str]) -> str:
 
 
 def calculate_walkin_price(value: str, booking: Dict[str, str]) -> str:
-    value_clean = float(parse_ticket_sheet.tidy_price(value, booking))
+    try:
+        value_clean = float(parse_ticket_sheet.tidy_price(value, booking))
+    except ValueError:
+        value_clean = 0.0
     if value_clean == 0.0:
         booking['walkin'] = 'true'
         try:
