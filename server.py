@@ -128,7 +128,8 @@ column_align = {
     Markup('Grotto<br>passes'): 'center',
     'Paid': 'center',
     'Presents': 'left',
-    'Date': 'center'
+    'Date': 'center',
+    'Notes': 'center',
 }
 
 train_dates = [
