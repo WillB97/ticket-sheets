@@ -45,7 +45,6 @@ table_configuration = [
     (None, 'Infants', None),
     ('Product price', 'Paid', parse_ticket_sheet.tidy_price),
     ('Price categories', 'Price categories', insert_html_newlines),
-    ('Special Needs', 'Notes', None),
 ]
 
 alpha_table_configuration = [
@@ -59,7 +58,6 @@ alpha_table_configuration = [
     ('Quantity', 'Qty.', None),
     ('Product price', 'Paid', parse_ticket_sheet.tidy_price),
     ('Price categories', 'Price categories', insert_html_newlines),
-    ('Special Needs', 'Notes', None),
 ]
 
 column_align = {
@@ -75,7 +73,6 @@ column_align = {
     'Price categories': 'left',
     'Train': 'center',
     'Date': 'center',
-    'Notes': 'center',
 }
 
 
