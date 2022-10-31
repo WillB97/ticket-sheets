@@ -97,7 +97,8 @@ table_configuration = [
     ('Accompanying Senior', 'Seniors', parse_ticket_sheet.include_additional_seniors),
     ('Quantity', Markup('Grotto<br>passes'), parse_ticket_sheet.remove_additional_adults),
     ('Product price', 'Paid', calculate_walkin_price),
-    ('Present Type', 'Presents', parse_ticket_sheet.extract_present_details)
+    ('Present Type', 'Presents', parse_ticket_sheet.extract_present_details),
+    ('Special Needs', 'Notes', None),
 ]
 
 alpha_table_configuration = [
@@ -112,7 +113,8 @@ alpha_table_configuration = [
     ('Accompanying Senior', 'Seniors', parse_ticket_sheet.include_additional_seniors),
     ('Quantity', Markup('Grotto<br>passes'), parse_ticket_sheet.remove_additional_adults),
     ('Product price', 'Paid', calculate_walkin_price),
-    ('Present Type', 'Presents', parse_ticket_sheet.extract_present_details)
+    ('Present Type', 'Presents', parse_ticket_sheet.extract_present_details),
+    ('Special Needs', 'Notes', None),
 ]
 
 column_align = {

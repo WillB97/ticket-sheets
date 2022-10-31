@@ -226,7 +226,8 @@ table_configuration = [
     (None, 'QR?', None),
     ('Product price', 'Paid', tidy_price),
     ('Price categories', 'Price categories', include_custom_tickets),
-    ('Present Type', 'Presents', extract_present_details)
+    ('Present Type', 'Presents', extract_present_details),
+    ('Special Needs', 'Notes', None),
 ]
 
 column_sorts = {  # Use input column labels
