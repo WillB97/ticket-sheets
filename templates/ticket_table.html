@@ -62,7 +62,7 @@ Hide Totals</button>
         {% for row in bookings %}
             <tr
             {% if row['booking_type'] == 'totals' %}
-                id='total'
+                id='total' style="border-bottom:4px solid"
             {% elif row['booking_type'] == 'order' and loop.nextitem is defined
             and loop.nextitem['booking_type'] == 'order' and loop.nextitem['booking']['Train'] != row['booking']['Train'] %}
                 style="border-bottom:4px solid"
@@ -76,7 +76,7 @@ Hide Totals</button>
                 <td class="text-center"><b>{{row.data.ticket_totals['Senior']|default(0)}}</b></td>
                 <td class="text-center"><b>{{row.data.ticket_totals['Child'] + row.data.ticket_totals['Infant']}}</b></td>
                 <td class="text-center"><!-- total income --><b>{{"%.2f"|format(row.data.total_cost)}}</b></td>
-                <td><!-- ticket totals -->
+                <td  colspan="2"><!-- ticket totals -->
                     {% for ticket, qty in row.data.ticket_totals.items() %}
                     {% if ticket in ['Child', 'Infant'] %}
                     {{ticket}}: {{qty}}<br>
