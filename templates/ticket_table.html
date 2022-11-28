@@ -60,7 +60,13 @@ Hide Totals</button>
         </thead>
         <tbody>
         {% for row in bookings %}
-            <tr {% if row['booking_type'] == 'totals' %}id='total'{% endif %}>
+            <tr
+            {% if row['booking_type'] == 'totals' %}
+                id='total'
+            {% elif row['booking_type'] == 'order' and loop.nextitem is defined
+            and loop.nextitem['booking_type'] == 'order' and loop.nextitem['booking']['Train'] != row['booking']['Train'] %}
+                style="border-bottom:4px solid"
+            {% endif %}>
             {% if row['booking_type'] == 'date' %}
                 <td colspan="{{columns}}" class="px-5"><b>{{ row['date'] }}</b></td>
             {% elif row['booking_type'] == 'totals' %}
