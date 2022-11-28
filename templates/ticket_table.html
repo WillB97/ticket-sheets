@@ -63,7 +63,7 @@ Hide Totals</button>
             <tr
             {% if row['booking_type'] == 'totals' %}
                 id='total' style="border-bottom:4px solid"
-            {% elif row['booking_type'] == 'order' and loop.nextitem is defined
+            {% elif active == 'tickets' and row['booking_type'] == 'order' and loop.nextitem is defined
             and loop.nextitem['booking_type'] == 'order' and loop.nextitem['booking']['Train'] != row['booking']['Train'] %}
                 style="border-bottom:4px solid"
             {% endif %}>
