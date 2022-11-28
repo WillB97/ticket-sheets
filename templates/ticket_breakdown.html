@@ -92,6 +92,7 @@
             {% for train in times %}
             <th class="text-center" scope="col">{{train}}</th>
             {% endfor %}
+            <th class="text-center" scope="col" style="border-left:2px solid">Total</th>
         </tr></thead>
         <tbody>{% for date in dates %}
             <tr>
@@ -102,7 +103,13 @@
                 {% else %}
                 <td class="text-center">-</td>
                 {% endif %}
-            {% endfor %}</tr>
+            {% endfor %}
+            {% if present_breakdown['by-day'][date] is defined %}
+            <td class="text-center" style="border-left:2px solid">{{present_breakdown['by-day'][date] | default(0)}}</td>
+            {% else %}
+            <td class="text-center" style="border-left:2px solid">-</td>
+            {% endif %}
+            </tr>
         {% endfor %}</tbody>
     </table>
 </div>

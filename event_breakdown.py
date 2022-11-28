@@ -305,7 +305,8 @@ def present_breakdown(bookings: Bookings, labels: List[str]) -> Dict[str, Dict[s
 
     return {
         'by-age': {k: dict(v) for k, v in present_age_summary.items()},
-        'by-train': dict(present_train_summary)
+        'by-train': dict(present_train_summary),
+        'by-day': {day: sum(age.values()) for day, age in present_train_summary.items()}
     }
 
 
