@@ -29,7 +29,7 @@ STANDARD_PRICES = {
     'Child': 7.0,
 }
 
-PREORDERED_TYPES = ['Adult', 'Senior', 'Child', 'Family Child']
+PREORDERED_TYPES = ['Adult', 'Senior', 'Child']
 
 
 def parse_args() -> argparse.Namespace:
@@ -218,10 +218,7 @@ def parse_tickets(ticket_str: str) -> List[Tuple[str, int, float]]:
         except IndexError:
             ticket_price = 0
 
-        if ticket_name == 'Child' and ticket_qty > 1:
-            ticket_output.append(('Family Child', ticket_qty, ticket_price))
-        else:
-            ticket_output.append((ticket_name, ticket_qty, ticket_price))
+        ticket_output.append((ticket_name, ticket_qty, ticket_price))
 
     return ticket_output
 
@@ -285,7 +282,7 @@ def main() -> None:
 
     ticket_values = {
         'Adult': args.adult, 'Senior': args.senior,
-        'Child': args.child, 'Family Child': args.family
+        'Child': args.child,
     }
 
     bookings = read_bookings(args.filename)
