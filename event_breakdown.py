@@ -209,8 +209,14 @@ def parse_tickets(ticket_str: str) -> List[Tuple[str, int, float]]:
         ticket_name, ticket_field_str = ticket.split(':', maxsplit=1)
         ticket_fields = ticket_field_str.split()  # other fields are space-separated
 
-        ticket_qty = int(ticket_fields[0])
-        ticket_price = float(ticket_fields[1][2:-1])
+        try:
+            ticket_qty = int(ticket_fields[0])
+        except IndexError:
+            ticket_price = 0
+        try:
+            ticket_price = float(ticket_fields[1][2:-1])
+        except IndexError:
+            ticket_price = 0
 
         if ticket_name == 'Child' and ticket_qty > 1:
             ticket_output.append(('Family Child', ticket_qty, ticket_price))
