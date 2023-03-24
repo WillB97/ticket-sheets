@@ -31,7 +31,7 @@ STANDARD_PRICES = {
     'Child': 7.0,
 }
 
-PREORDERED_TYPES = ['Adult', 'Senior', 'Child', 'Family Child']
+PREORDERED_TYPES = ['Adult', 'Senior', 'Child']
 
 
 def parse_args() -> argparse.Namespace:
@@ -353,7 +353,7 @@ def main() -> None:
 
     ticket_values = {
         'Adult': args.adult, 'Senior': args.senior,
-        'Child': args.child, 'Family Child': args.family
+        'Child': args.child,
     }
 
     bookings = read_bookings(args.filename)
