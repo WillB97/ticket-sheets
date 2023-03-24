@@ -73,6 +73,7 @@ Hide Totals</button>
                     {{ticket}}: {{qty}}<br>
                     {% endfor %}
                 </td>
+                <td></td>
             {% else %}
                 {% for label in header %}
                 <td class="text-{{ align[label] }}">{{ row['booking'][label] }}</td>
