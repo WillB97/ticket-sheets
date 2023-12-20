@@ -1,5 +1,4 @@
 import re
-import csv
 from typing import Dict, List, Tuple, NamedTuple
 from datetime import datetime, date as dt_date
 from collections import defaultdict, Counter
@@ -29,33 +28,6 @@ STANDARD_PRICES = {
 }
 
 PREORDERED_TYPES = ['Adult', 'Senior', 'Child']
-
-
-def read_bookings(filename: str) -> Bookings:
-    with open(filename, 'r', errors='ignore') as f:  # ignore unicode errors
-        data_list = list(csv.reader(f, delimiter=','))  # convert csv data to 2D list
-
-        if data_list == []:
-            print("No CSV rows found")
-            exit(1)
-
-    return data_list
-
-
-def calculate_totals(
-    bookings: Bookings,
-    labels: List[str],
-    ticket_values: Dict[str, float],
-) -> Dict[str, Dict[str, BookingSubTotal]]:
-    totals: BookingsBreakdown = defaultdict(dict)
-
-    grouped_bookings = group_bookings(bookings, labels)
-
-    for date, day_bookings in grouped_bookings.items():
-        for event, booking_group in day_bookings.items():
-            totals[date][event] = subtotal_orders(booking_group, labels, ticket_values)
-
-    return totals
 
 
 def parse_date(date_str: str) -> datetime:
@@ -120,14 +92,12 @@ def subtotal_orders(
     bookings: Bookings,
     labels: List[str],
     ticket_values: Dict[str, float],
-    standard_prices: Dict[str, float] = STANDARD_PRICES,
 ) -> BookingSubTotal:
     full_value_tickets: Dict[str, int] = defaultdict(int)  # all keys map to 0 initially
     reduced_tickets: Dict[str, int] = defaultdict(int)
     ticket_types = []
     total_value = 0.0
     total_saving = 0.0
-    total_extra_cost = 0.0  # the value above a regular service, required for tax calculations
     total_orders = len(bookings)
 
     for booking in bookings:
@@ -140,7 +110,6 @@ def subtotal_orders(
 
         total_value += booking_price
         total_saving += saving
-        total_extra_cost += ticket_extra_cost(tickets, standard_prices)
 
         for ticket_name, ticket_qty, _ in tickets:
             if saving == 0.0:
@@ -158,7 +127,7 @@ def subtotal_orders(
         dict(reduced_tickets),
         total_value,
         total_saving,
-        total_extra_cost,
+        0.0,
         total_orders,
         ticket_types_sorted,
     )
@@ -233,20 +202,6 @@ def calculate_ticket_value(
     return total_cost
 
 
-def ticket_extra_cost(tickets: List[Tuple[str, int, float]], standard_prices: Dict[str, float]) -> float:
-    "Calculate the value above a regular service, required for tax calculations"
-    extra_cost = 0.0
-
-    for ticket_name, ticket_qty, ticket_value in tickets:
-        # ticket_price = standard_prices.get(ticket_name, 0)
-        # ticket_qty * ticket_price
-
-        # TODO figure this out
-        pass
-
-    return extra_cost
-
-
 def present_breakdown(bookings: Bookings, labels: List[str]) -> Dict[str, Dict[str, Dict[str, int]]]:
     presents = defaultdict(list)
     for booking in bookings:
@@ -283,29 +238,3 @@ def present_totals(present_age_breakdown: Dict[dt_date, Dict[str, int]]) -> Dict
             totals[present] += qty
 
     return dict(totals)
-
-
-def print_totals(totals: BookingsBreakdown) -> None:
-    for date, day_totals in totals.items():
-        print(f"Totals for {date}")
-        for event, event_totals in day_totals.items():
-            print(f"Totals for {event}")
-
-            print("  Full-price tickets")
-            for ticket_name, ticket_qty in event_totals.full_value_tickets.items():
-                print(f"  {ticket_name:<6}: {ticket_qty:>4}")
-            print()
-
-            print("  Reduced tickets")
-            for ticket_name, ticket_qty in event_totals.reduced_tickets.items():
-                print(f"  {ticket_name:<6}: {ticket_qty:>4}")
-            print()
-
-            print(f"  Orders: {event_totals.total_orders:>4}")
-            print(f"  Income:        £{event_totals.total_value:.2f}")
-            print(f"  Extra value:   £{event_totals.total_extra_cost:.2f}")
-            print(f"  Total savings: £{event_totals.total_saving:.2f}")
-            print()
-
-        print('-' * 30)
-        print()

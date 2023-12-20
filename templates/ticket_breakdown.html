@@ -56,9 +56,6 @@
                     {% if event_bookings.total_saving != 0.0 %}
                     <b>Total savings:</b> £{{ "%.2f"|format(event_bookings.total_saving) }}<br>
                     {% endif %}
-                    {% if event_bookings.total_extra_cost != 0.0 %}
-                    <b>Total Extra Value:</b> £{{ "%.2f"|format(event_bookings.total_extra_cost) }}<br>
-                    {% endif %}
                     <b>Orders:</b> {{event_bookings.total_orders}}
                 </div>
             </div>

@@ -243,13 +243,11 @@ def prepare_ticket_breakdown(processed_bookings, labels):
             event_prices = TICKET_PRICES.get(f"{date} {event}", {})
 
             ticket_values = event_prices.get('event', event_breakdown.STANDARD_PRICES)
-            standard_prices = event_prices.get('standard', event_breakdown.STANDARD_PRICES)
 
             totals[date][event] = event_breakdown.subtotal_orders(
                 booking_group,
                 labels,
                 ticket_values,
-                standard_prices,
             )
 
     return dict(totals)
