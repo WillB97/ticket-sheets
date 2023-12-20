@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 import csv
 import json
-import requests
 from os import urandom
 from io import TextIOWrapper
 from flask import Flask, Markup, url_for, request, redirect, render_template, session
@@ -95,7 +94,7 @@ table_configuration = [
     ('Customer last name', 'Last name', None),
     ('Accompanying Adult', 'Adults', parse_ticket_sheet.include_additional_adults),
     ('Accompanying Senior', 'Seniors', parse_ticket_sheet.include_additional_seniors),
-    ('Quantity', Markup('Grotto<br>passes'), parse_ticket_sheet.remove_additional_adults),
+    ('Quantity', Markup('Grotto<br>passes'), parse_ticket_sheet.count_grotto_passes),
     ('Product price', 'Paid', calculate_walkin_price),
     ('Present Type', 'Presents', parse_ticket_sheet.extract_present_details),
     ('Special Needs', 'Notes', None),
@@ -111,7 +110,7 @@ alpha_table_configuration = [
     ('Customer last name', 'Last name', None),
     ('Accompanying Adult', 'Adults', parse_ticket_sheet.include_additional_adults),
     ('Accompanying Senior', 'Seniors', parse_ticket_sheet.include_additional_seniors),
-    ('Quantity', Markup('Grotto<br>passes'), parse_ticket_sheet.remove_additional_adults),
+    ('Quantity', Markup('Grotto<br>passes'), parse_ticket_sheet.count_grotto_passes),
     ('Product price', 'Paid', calculate_walkin_price),
     ('Present Type', 'Presents', parse_ticket_sheet.extract_present_details),
     ('Special Needs', 'Notes', None),
@@ -401,28 +400,20 @@ def load_fresh_config():
     """
     load_config()
 
+    # Check if we have a CSV and go to the upload page if not
+    # Skip for POST requests, /upload and static files
+    if request.method == 'POST':
+        return
+    if request.endpoint == 'prepare_upload' or request.endpoint == 'static':
+        return
 
-@app.route('/auto')
-def ticket_sheet():
     try:
-        r = requests.get(CSV_URL, timeout=10)
-    except (requests.exceptions.Timeout, requests.exceptions.ConnectionError) as e:
-        return render_tickets_error("Failed to fetch CSV data", err_str=e)
+        orders = session['csv_data']
+    except KeyError:
+        return render_tickets_error("Please upload a CSV")
 
-    except requests.exceptions.RequestException as e:
-        return render_tickets_error("An error occured while fetching CSV data", err_str=e)
-
-    if r.status_code != 200:
-        return render_tickets_error("Failed to fetch CSV data", err_str=f"Error code: {r.status_code}")
-
-    if r.headers['Content-Type'].find('text/csv') == -1:
-        return render_tickets_error("Retrieved data was not a CSV", err_str="Check the CSV URL.")
-
-    data_list = list(csv.reader(r.text.splitlines(keepends=True), delimiter=','))
-
-    session['csv_name'] = f"Auto ({datetime.now().strftime('%c')})"
-    session['csv_data'] = data_list
-    return redirect(url_for('ticket_table'))
+    if not orders:
+        return render_tickets_error("No Ticket Data Found")
 
 
 @app.route('/')
@@ -494,19 +485,13 @@ def update_config():
 
 @app.route('/tickets')
 def ticket_table():
-    try:
-        orders = session['csv_data']
-    except KeyError:
-        return render_tickets_error("Please upload a CSV")
-
-    if not orders:
-        return render_tickets_error("No Ticket Data Found")
+    orders = session['csv_data']
 
     # Setup column layout & filter
     parse_ticket_sheet.table_configuration = table_configuration
     parse_ticket_sheet.BOOKING_FILTER_STRING = FILTER_STRING
 
-    header = [column[1] for column in parse_ticket_sheet.table_configuration]
+    header = [column[1] for column in table_configuration]
 
     parsed_bookings = parse_bookings(orders)
     filtered_bookings = [booking[1].values() for booking in parsed_bookings]
@@ -542,13 +527,7 @@ def ticket_table():
 
 @app.route('/alpha')
 def alphabetical_orders():
-    try:
-        orders = session['csv_data']
-    except KeyError:
-        return render_tickets_error("Please upload a CSV")
-
-    if not orders:
-        return render_tickets_error("No Ticket Data Found")
+    orders = session['csv_data']
 
     old_group_bookings = parse_ticket_sheet.GROUP_BOOKINGS_BY_DATE
     old_sort_order = parse_ticket_sheet.column_sorts
@@ -561,7 +540,7 @@ def alphabetical_orders():
         parse_ticket_sheet.GROUP_BOOKINGS_BY_DATE = False
         parse_ticket_sheet.column_sorts = {'Customer first name': 'ASC', 'Customer last name': 'ASC'}
 
-        header = [column[1] for column in parse_ticket_sheet.table_configuration]
+        header = [column[1] for column in table_configuration]
 
         parsed_bookings = parse_bookings(orders)
         rendered_bookings = prepare_booking_table_values(parsed_bookings, header)
@@ -591,13 +570,7 @@ def alphabetical_orders():
 
 @app.route('/breakdown')
 def ticket_breakdown():
-    try:
-        orders = session['csv_data']
-    except KeyError:
-        return render_tickets_error("Please upload a CSV")
-
-    if not orders:
-        return render_tickets_error("No Ticket Data Found")
+    orders = session['csv_data']
 
     # Setup column layout & filter
     parse_ticket_sheet.table_configuration = table_configuration
@@ -605,7 +578,7 @@ def ticket_breakdown():
 
     parsed_bookings = parse_bookings(orders)
     filtered_bookings = [booking[1].values() for booking in parsed_bookings]
-    header = [column[1] for column in parse_ticket_sheet.table_configuration]
+    header = [column[1] for column in table_configuration]
 
     try:
         labels = parsed_bookings[0][1].keys()
@@ -691,13 +664,7 @@ def ticket_breakdown():
 
 @app.route('/tally')
 def tally_index():
-    try:
-        orders = session['csv_data']
-    except KeyError:
-        return render_tickets_error("Please upload a CSV")
-
-    if not orders:
-        return render_tickets_error("No Ticket Data Found")
+    orders = session['csv_data']
 
     # Setup column layout & filter
     parse_ticket_sheet.table_configuration = table_configuration
@@ -716,13 +683,7 @@ def tally_index():
 
 @app.route('/tally/<path:date>')
 def tally_sheet(date):
-    try:
-        orders = session['csv_data']
-    except KeyError:
-        return render_tickets_error("Please upload a CSV")
-
-    if not orders:
-        return render_tickets_error("No Ticket Data Found")
+    orders = session['csv_data']
 
     # Setup column layout & filter
     parse_ticket_sheet.table_configuration = table_configuration

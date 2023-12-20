@@ -1,14 +1,11 @@
-#!/usr/bin/env python3
 import re
-import csv
-import sys
 from typing import Dict, List
-from pathlib import Path
 from datetime import datetime
 
 
 ## Field conversion functions ##
 def simplify_product(value: str, booking: Dict[str, str]) -> str:
+    """Shorten product names to fit in the table."""
     value = value.replace('Weekend', 'w/e')
     value = value.replace('- Day Ticket', '')
     value = value.replace('Ticket', '')
@@ -16,12 +13,25 @@ def simplify_product(value: str, booking: Dict[str, str]) -> str:
 
 
 def simplify_date(value: str, booking: Dict[str, str]) -> str:
-    value_clean = re.sub(r'([0-9]+)(st|nd|rd|th)', r'\1', value).replace(',', '')
-    date_value = datetime.strptime(value_clean, '%A %B %d %Y %I:%M %p')
-    return date_value.strftime('%a %d/%m')
+    """Shorten date to fit in the table."""
+    full_date = date_sort_item(value)
+    return full_date.strftime('%a %d/%m')
+
+
+def parse_train_time(value: str, booking: Dict[str, str]) -> str:
+    """Extract the time from the date field."""
+    full_date = date_sort_item(value)
+    return full_date.strftime('%H:%M')
+
+
+def parse_train_date(value: str, booking: Dict[str, str]) -> str:
+    """Extract the date from the date field."""
+    full_date = date_sort_item(value)
+    return full_date.strftime('%d/%m')
 
 
 def tidy_price(value: str, booking: Dict[str, str]) -> str:
+    """Remove currency symbols from price so it can be converted to a float."""
     return value.replace('&pound;', '').replace('£', '')
 
 
@@ -40,16 +50,6 @@ def parse_ticket_types(value: str, booking: Dict[str, str]) -> str:
         ticket_strings.append(f"{ticket_name[0]}:{ticket_qty}")
 
     return ', '.join(ticket_strings)
-
-
-def parse_train_time(value: str, booking: Dict[str, str]) -> str:
-    full_date_str = date_sort_item(value)
-    return full_date_str.strftime('%H:%M')
-
-
-def parse_train_date(value: str, booking: Dict[str, str]) -> str:
-    full_date_str = date_sort_item(value)
-    return full_date_str.strftime('%d/%m')
 
 
 def include_custom_tickets(value: str, booking: Dict[str, str]) -> str:
@@ -111,16 +111,6 @@ def extract_present_details(value: str, booking: Dict[str, str]) -> str:
     return ', '.join(presents)
 
 
-def parse_train_time(value: str, booking: Dict[str, str]) -> str:
-    full_date_str = date_sort_item(value)
-    return full_date_str.strftime('%H:%M')
-
-
-def parse_train_date(value: str, booking: Dict[str, str]) -> str:
-    full_date_str = date_sort_item(value)
-    return full_date_str.strftime('%d/%m')
-
-
 def remove_custom_price(value: str, booking: Dict[str, str]) -> str:
     val_str = value.split('£')[0]
     try:
@@ -133,6 +123,7 @@ def remove_custom_price(value: str, booking: Dict[str, str]) -> str:
 
 
 def include_additional_adults(value: str, booking: Dict[str, str], field='Adult'):
+    """Add additional adults to the price categories field."""
     value = remove_custom_price(value, booking)
     if 'Additional' in booking['Product title']:
         for ticket in booking['Price categories'].splitlines():
@@ -147,10 +138,18 @@ def include_additional_adults(value: str, booking: Dict[str, str], field='Adult'
 
 
 def include_additional_seniors(value: str, booking: Dict[str, str]):
+    """Add additional seniors to the price categories field."""
     return include_additional_adults(value, booking, field='Senior')
 
 
-def remove_additional_adults(value: str, booking: Dict[str, str]):
+def count_grotto_passes(value: str, booking: Dict[str, str]):
+    """
+    Count the number of grotto passes in the booking.
+
+    Standard santa bookings quntity only counts the number of children.
+    Additional adults/seniors bookings quantity counts the number of
+    adults/seniors so need to be ignored.
+    """
     if 'Additional' in booking['Product title']:
         return '0'
     return value
@@ -239,22 +238,9 @@ column_sorts = {  # Use input column labels
 GROUP_BOOKINGS_BY_DATE = True
 BOOKING_FILTER_STRING = 'Day Rover'  # Only products containing this substring will be included in the output
 
+
 # ===========================
 ## Internal logic ##
-
-
-def parse_args():
-    error_string = f'Usage: {sys.argv[0]} <input-csv-file> <output-csv-file>'
-
-    if len(sys.argv) != 3:
-        print(error_string)
-        exit(1)
-
-    if not (Path(sys.argv[1]).is_file()):
-        print(error_string)
-        exit(1)
-
-
 def date_sort_item(date_str: str) -> datetime:
     value_clean = re.sub(r'([0-9]+)(st|nd|rd|th)', r'\1', date_str).replace(',', '')
     return datetime.strptime(value_clean, '%A %B %d %Y %I:%M %p')
@@ -313,42 +299,3 @@ def format_group_date(date: datetime) -> str:
     date_partial = date.strftime('%A %B')  # day of week & month
 
     return f"{date_partial} {day}{date_suffix(day)}".upper()
-
-
-def main():
-    output_bookings = []
-    last_seen_date = datetime(1970, 1, 1, 0, 0)  # use minimum date so the first date in printed
-
-    with open(sys.argv[1], 'r', errors='ignore') as f:
-        data_list = list(csv.reader(f, delimiter=','))
-
-        if not data_list:
-            print("No CSV rows found")
-            exit(1)
-
-    labels = data_list[0]  # top row is labels
-
-    bookings = sort_bookings(data_list[1:], labels)
-
-    for row in bookings:
-        booking = dict(zip(labels, row))  # map columns to label names
-        if filter_booking(booking):
-            output_bookings.append([format_booking_row(booking), booking])
-
-    with open(sys.argv[2], 'w', newline='') as f:  # output data into a new csv
-        output = csv.writer(f, quoting=csv.QUOTE_ALL)
-
-        output.writerow([column[1] for column in table_configuration])  # write header row
-
-        for booking, original_booking in output_bookings:
-            if GROUP_BOOKINGS_BY_DATE:
-                booking_date = date_sort_item(original_booking['Start date'])
-                if booking_date != last_seen_date:
-                    output.writerow(['', format_group_date(booking_date)])
-                    last_seen_date = booking_date
-            output.writerow(booking)
-
-
-if __name__ == '__main__':
-    parse_args()
-    main()

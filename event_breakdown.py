@@ -1,9 +1,6 @@
-#!/usr/bin/env python3
 import re
 import csv
-import argparse
 from typing import Dict, List, Tuple, NamedTuple
-from pathlib import Path
 from datetime import datetime, date as dt_date
 from collections import defaultdict, Counter
 
@@ -32,40 +29,6 @@ STANDARD_PRICES = {
 }
 
 PREORDERED_TYPES = ['Adult', 'Senior', 'Child']
-
-
-def parse_args() -> argparse.Namespace:
-    parser = argparse.ArgumentParser()
-    parser.add_argument(
-        'filename',
-        help="The CSV file to parse",
-        type=Path
-    )
-    parser.add_argument(
-        '-A', '--adult',
-        help="Set the value of adult tickets",
-        default=9.0,
-        type=float
-    )
-    parser.add_argument(
-        '-S', '--senior',
-        help="Set the value of senior tickets",
-        default=8.0,
-        type=float
-    )
-    parser.add_argument(
-        '-C', '--child',
-        help="Set the value of child tickets",
-        default=7.0,
-        type=float
-    )
-    parser.add_argument(
-        '-F', '--family',
-        help="Set the value of family child tickets",
-        default=6.0,
-        type=float
-    )
-    return parser.parse_args()
 
 
 def read_bookings(filename: str) -> Bookings:
@@ -346,22 +309,3 @@ def print_totals(totals: BookingsBreakdown) -> None:
 
         print('-' * 30)
         print()
-
-
-def main() -> None:
-    args = parse_args()
-
-    ticket_values = {
-        'Adult': args.adult, 'Senior': args.senior,
-        'Child': args.child,
-    }
-
-    bookings = read_bookings(args.filename)
-
-    totals = calculate_totals(bookings[1:], labels=bookings[0], ticket_values=ticket_values)
-
-    print_totals(totals)
-
-
-if __name__ == '__main__':
-    main()
