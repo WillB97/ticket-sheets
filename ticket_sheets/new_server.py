@@ -25,7 +25,16 @@ Session(app)
 
 def render_tickets_error(error, err_str=None):
     """Render the error page with the given error message."""
-    return render_template("error.html", error=error, error_string=err_str)
+    return render_template(
+        "error.html",
+        config={
+            "filter": config.get("product filter", ""),
+            "hide_old": config.get("hide old orders", ""),
+            "old_date": config.get("old order date", ""),
+        },
+        error=error,
+        error_string=err_str,
+    )
 
 
 @app.errorhandler(500)
