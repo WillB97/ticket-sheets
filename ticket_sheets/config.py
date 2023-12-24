@@ -74,6 +74,7 @@ class ColumnConfig(NamedTuple):
     input_column: Optional[str]
     align: str = "center"
     formatter: str = ""
+    total_method: str = ""
 
 
 class FieldConfig(NamedTuple):
@@ -117,24 +118,34 @@ DEFAULT_CONFIG = DataConfig(
     },
     ticket_config=TableConfig(
         columns=[
-            ColumnConfig("Order", "Order ID"),
+            ColumnConfig("Order", "Order ID", total_method="label_3"),
             ColumnConfig("Booking", "Booking ID"),
             ColumnConfig("Train", "Start date_formatted", formatter="train_time"),
             ColumnConfig(
-                "First name", "Customer first name", align="right", formatter="title_case"
+                "First name",
+                "Customer first name",
+                align="right",
+                formatter="title_case",
+                total_method="order_count_2",
             ),
             ColumnConfig(
                 "Last name", "Customer last name", align="left", formatter="title_case"
             ),
-            ColumnConfig("Qty.", "Quantity"),
+            ColumnConfig("Qty.", "Quantity_formatted", total_method="sum"),
             ColumnConfig("Issued", None),
             ColumnConfig("Infants", None),
-            ColumnConfig("Paid", "Product price_formatted", formatter="format_price"),
+            ColumnConfig(
+                "Paid",
+                "Product price_formatted",
+                formatter="format_price",
+                total_method="price_sum",
+            ),
             ColumnConfig(
                 "Price categories",
                 "Price categories",
                 align="left",
                 formatter="insert_html_newlines",
+                total_method="category_sum",
             ),
             ColumnConfig("Notes", "Special Needs"),
         ],
@@ -181,28 +192,41 @@ SANTA_CONFIG = DataConfig(
         # "Start date": FieldConfig(conversion="parse_date"),
         "Product Title": FieldConfig(conversion="simplify_product"),
         "Quantity": FieldConfig(conversion="parse_int"),
-        # "Accompanying Adult": FieldConfig(),
-        # "Accompanying Senior": FieldConfig(),
+        "Accompanying Adult": FieldConfig(conversion="parse_int"),
+        "Accompanying Senior": FieldConfig(conversion="parse_int"),
         "Product price": FieldConfig(conversion="tidy_price"),
         # "Present Type": FieldConfig(extractions=["extract_present_details"]),
     },
     ticket_config=TableConfig(
         columns=[
-            ColumnConfig("Order", "Order ID"),
+            ColumnConfig("Order", "Order ID", total_method="label_3"),
             ColumnConfig("Booking", "Booking ID"),
             ColumnConfig("Train", "Start date_formatted", formatter="train_time"),
             ColumnConfig(
-                "First name", "Customer first name", align="right", formatter="title_case"
+                "First name",
+                "Customer first name",
+                align="right",
+                formatter="title_case",
+                total_method="order_count_2",
             ),
             ColumnConfig(
                 "Last name", "Customer last name", align="left", formatter="title_case"
             ),
-            ColumnConfig("Adults", "Accompanying Adult"),
-            ColumnConfig("Seniors", "Accompanying Senior"),
-            ColumnConfig("Grotto<br>passes", "Quantity"),
-            ColumnConfig("Paid", "Product price_formatted", formatter="format_price"),
+            ColumnConfig("Adults", "Accompanying Adult_formatted", total_method="sum"),
+            ColumnConfig("Seniors", "Accompanying Senior_formatted", total_method="sum"),
+            ColumnConfig("Grotto<br>passes", "Quantity_formatted", total_method="sum"),
             ColumnConfig(
-                "Presents", "Present Type_formatted", align="left", formatter="comma_sep"
+                "Paid",
+                "Product price_formatted",
+                formatter="format_price",
+                total_method="price_sum",
+            ),
+            ColumnConfig(
+                "Presents",
+                "Present Type_formatted",
+                align="left",
+                formatter="comma_sep",
+                total_method="present_sum",
             ),
             ColumnConfig("Notes", "Special Needs"),
         ],

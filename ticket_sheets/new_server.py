@@ -151,7 +151,10 @@ def ticket_table():
     table_configs: DataConfig = config["data_config"]
 
     parsed_bookings = parse_bookings(filtered_data, table_configs.input_format)
-    rendered_bookings = format_for_table(parsed_bookings, table_configs.ticket_config)
+    # Also include daily totals
+    rendered_bookings = format_for_table(
+        parsed_bookings, table_configs.ticket_config, daily_totals=True
+    )
 
     header = [column.title for column in table_configs.ticket_config.columns]
     column_align = {

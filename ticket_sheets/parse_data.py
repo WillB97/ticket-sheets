@@ -5,7 +5,7 @@ Generates a table of the bookings to be output and the summary statistics.
 """
 
 from datetime import datetime
-from typing import Callable, Dict, List, NamedTuple, Optional
+from typing import Callable, Dict, List, NamedTuple
 
 import pandas as pd
 from flask import Markup
@@ -120,7 +120,7 @@ def parse_bookings(data: pd.DataFrame, config: Dict[str, FieldConfig]) -> pd.Dat
 
 # Format functions
 def format_for_table(
-    data: pd.DataFrame, config: TableConfig, daily_totals: Optional[pd.DataFrame] = None
+    data: pd.DataFrame, config: TableConfig, daily_totals: bool = False
 ) -> List[TableRow]:
     """
     Format the data for the output table.
@@ -157,10 +157,8 @@ def format_for_table(
             for _, row in date_group.iterrows():
                 output_rows.append(TableRow("booking", format_row(row, config)))
             # If day totals, after each group, add day totals
-            if daily_totals is not None and date_val in daily_totals.index:
-                output_rows.append(
-                    TableRow("totals", format_total_row(daily_totals.loc[date_val], config))
-                )
+            if daily_totals:
+                output_rows.append(TableRow("totals", format_total_row(date_group, config)))
     else:
         for _, row in data.iterrows():
             output_rows.append(TableRow("booking", format_row(row, config)))
@@ -201,12 +199,32 @@ def format_row(row: pd.Series, config: TableConfig) -> Dict[str, str]:
     return output_row
 
 
-def format_total_row(row: pd.Series, config: TableConfig) -> Dict[str, str]:
+def format_total_row(day_data: pd.DataFrame, config: TableConfig) -> Dict[str, str]:
     """
-    Format a row of the output table.
+    Calculate the totals for a day and format them for the output table.
 
-    This function formats a row of the output table using the configuration
+    This function formats a totals row for the output table using the configuration
     provided.
     """
     output_row = {}
+
+    # Generate output values for each column in config.columns
+    for col_config in config.columns:
+        col_title = col_config.title
+        if "<br>" in col_title:
+            col_title = Markup(col_title)
+
+        if col_config.input_column is None or col_config.total_method == "":
+            output_row[col_title] = "", 1
+        else:
+            col_values = day_data[col_config.input_column]
+            # Apply total method to output values
+            try:
+                total_func = getattr(conversions, col_config.total_method)
+            except AttributeError:
+                raise ValueError(f"Invalid total method name {col_config.total_method}")
+
+            value = total_func(col_values)
+            output_row[col_title] = value
+
     return output_row

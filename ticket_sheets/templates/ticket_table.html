@@ -71,19 +71,18 @@ Hide Totals</button>
             {% if row.booking_type == "date" %}
                 <td colspan="{{columns}}" class="px-5"><b>{{ row.booking['date'] }}</b></td>
             {% elif row.booking_type == "totals" %}
-                <td colspan="3" class="text-center"><b>Totals</b></td>
-                <td colspan="2" class="text-center"><b>Orders:</b> {{row.booking.num_orders}}</td>
-                <td class="text-center"><b>{{row.booking.ticket_totals['Adult']|default(0)}}</b></td>
-                <td class="text-center"><b>{{row.booking.ticket_totals['Senior']|default(0)}}</b></td>
-                <td class="text-center"><b>{{row.booking.ticket_totals['Child'] + row.booking.ticket_totals['Infant']}}</b></td>
-                <td class="text-center"><!-- total income --><b>{{"%.2f"|format(row.booking.total_cost)}}</b></td>
-                <td  colspan="2"><!-- ticket totals -->
-                    {% for ticket, qty in row.data.ticket_totals.items() %}
-                    {% if ticket in ['Child', 'Infant'] %}
-                    {{ticket}}: {{qty}}<br>
+                {% set ns = namespace(skip_count=0) %}
+                {% for label in header %}
+                    {% if ns.skip_count <= 0 %}
+                        <td
+                            colspan="{{row.booking[label][1]}}"
+                            class="text-{% if row.booking[label][1] == 1 %}{{ align[label] }}{% else %}center{% endif %}"
+                        >{{row.booking[label][0]}}</td>
+                        {% set ns.skip_count = row.booking[label][1] - 1 %}
+                    {% else %}
+                        {% set ns.skip_count = ns.skip_count - 1 %}
                     {% endif %}
-                    {% endfor %}
-                </td>
+                {% endfor %}
             {% else %}
                 {% for label in header %}
                     {% if label == "Paid" and row.booking['walkin'] %}
