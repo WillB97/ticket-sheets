@@ -8,12 +8,12 @@
 
         <div class="form-check mb-2 mr-sm-2">
             <label class="form-check-label">
-                <input class="form-check-input" type="checkbox" name="hideOld" value="hide" {% if config['hideOld'] %}checked{% endif %}> Hide Old Bookings
+                <input class="form-check-input" type="checkbox" name="hideOld" value="hide" {% if config.hide_old %}checked{% endif %}> Hide Old Bookings
             </label>
         </div>
 
         <label for="filterDate" class="mr-sm-2">Earliest Date:</label>
-        <input class="form-control mb-2 mr-sm-2" type="date" name="filterDate" id="filterDate" value="{{config['old_date']|default('')}}">
+        <input class="form-control mb-2 mr-sm-2" type="date" name="filterDate" id="filterDate" value="{{config.old_date|default('')}}">
         <input type="submit" class="btn btn-primary mb-2" value="Update Config" name="submit">
     </div>
 </form>
@@ -42,7 +42,7 @@ Hide Totals</button>
         });
       });
     });
-    </script>
+</script>
 {% endif %}
 
 {% endblock %}
@@ -52,30 +52,31 @@ Hide Totals</button>
     <table class="table table-bordered table-hover table-sm" id="orders">
         <thead>
             <tr>
-            {% for label in header %}
+                {% for label in header %}
                 <th class="text-center" scope="col">{{ label }}</th>
-            {% endfor %}
+                {% endfor %}
+                {# Add an extra column for the hide buttons #}
                 <th class="d-print-none"></th>
             </tr>
         </thead>
         <tbody>
         {% for row in bookings %}
             <tr
-            {% if row['booking_type'] == 'totals' %}
+            {% if row.booking_type == "totals" %}
                 id='total' style="border-bottom:4px solid"
-            {% elif active == 'tickets' and row['booking_type'] == 'order' and loop.nextitem is defined
-            and loop.nextitem['booking_type'] == 'order' and loop.nextitem['booking']['Train'] != row['booking']['Train'] %}
+            {% elif active == 'tickets' and row.booking_type == "order" and loop.nextitem is defined
+            and loop.nextitem.booking_type == "order" and loop.nextitem.booking['Train'] != row['booking']['Train'] %}
                 style="border-bottom:4px solid"
             {% endif %}>
-            {% if row['booking_type'] == 'date' %}
-                <td colspan="{{columns}}" class="px-5"><b>{{ row['date'] }}</b></td>
-            {% elif row['booking_type'] == 'totals' %}
+            {% if row.booking_type == "date" %}
+                <td colspan="{{columns}}" class="px-5"><b>{{ row.booking['date'] }}</b></td>
+            {% elif row.booking_type == "totals" %}
                 <td colspan="3" class="text-center"><b>Totals</b></td>
-                <td colspan="2" class="text-center"><b>Orders:</b> {{row.data.num_orders}}</td>
-                <td class="text-center"><b>{{row.data.ticket_totals['Adult']|default(0)}}</b></td>
-                <td class="text-center"><b>{{row.data.ticket_totals['Senior']|default(0)}}</b></td>
-                <td class="text-center"><b>{{row.data.ticket_totals['Child'] + row.data.ticket_totals['Infant']}}</b></td>
-                <td class="text-center"><!-- total income --><b>{{"%.2f"|format(row.data.total_cost)}}</b></td>
+                <td colspan="2" class="text-center"><b>Orders:</b> {{row.booking.num_orders}}</td>
+                <td class="text-center"><b>{{row.booking.ticket_totals['Adult']|default(0)}}</b></td>
+                <td class="text-center"><b>{{row.booking.ticket_totals['Senior']|default(0)}}</b></td>
+                <td class="text-center"><b>{{row.booking.ticket_totals['Child'] + row.booking.ticket_totals['Infant']}}</b></td>
+                <td class="text-center"><!-- total income --><b>{{"%.2f"|format(row.booking.total_cost)}}</b></td>
                 <td  colspan="2"><!-- ticket totals -->
                     {% for ticket, qty in row.data.ticket_totals.items() %}
                     {% if ticket in ['Child', 'Infant'] %}
@@ -85,10 +86,10 @@ Hide Totals</button>
                 </td>
             {% else %}
                 {% for label in header %}
-                    {% if label == "Paid" and row['booking']['walkin'] %}
-                    <td class="text-{{ align[label] }}">({{ row['booking'][label] }})</td>
+                    {% if label == "Paid" and row.booking['walkin'] %}
+                    <td class="text-{{ align[label] }}">({{ row.booking[label] }})</td>
                     {% else %}
-                    <td class="text-{{ align[label] }}">{{ row['booking'][label] }}</td>
+                    <td class="text-{{ align[label] }}">{{ row.booking[label] }}</td>
                     {% endif %}
                 {% endfor %}
             {% endif %}
