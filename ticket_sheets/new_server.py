@@ -4,7 +4,7 @@
 from datetime import datetime
 
 import pandas as pd
-from flask import Flask, redirect, render_template, request, session, url_for
+from flask import Flask, Markup, redirect, render_template, request, session, url_for
 from werkzeug.exceptions import InternalServerError
 
 from flask_session import Session
@@ -156,7 +156,7 @@ def ticket_table():
         parsed_bookings, table_configs.ticket_config, daily_totals=True
     )
 
-    header = [column.title for column in table_configs.ticket_config.columns]
+    header = [Markup(column.title) for column in table_configs.ticket_config.columns]
     column_align = {
         column.title: column.align for column in table_configs.ticket_config.columns
     }
@@ -183,7 +183,7 @@ def alphabetical_orders():
     parsed_bookings = parse_bookings(filtered_data, table_configs.input_format)
     rendered_bookings = format_for_table(parsed_bookings, table_configs.alpha_config)
 
-    header = [column.title for column in table_configs.alpha_config.columns]
+    header = [Markup(column.title) for column in table_configs.alpha_config.columns]
     column_align = {
         column.title: column.align for column in table_configs.alpha_config.columns
     }

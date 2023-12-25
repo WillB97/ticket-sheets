@@ -112,6 +112,8 @@ DEFAULT_CONFIG = DataConfig(
     input_format={
         # Start date is automatically converted to a datetime
         # "Start date": FieldConfig(conversion="parse_date"),
+        "Booking ID": FieldConfig(conversion="parse_int"),
+        "Order ID": FieldConfig(conversion="parse_int"),
         "Product Title": FieldConfig(conversion="simplify_product"),
         "Quantity": FieldConfig(conversion="parse_int"),
         "Product price": FieldConfig(conversion="tidy_price"),
@@ -150,8 +152,8 @@ DEFAULT_CONFIG = DataConfig(
             ColumnConfig("Notes", "Special Needs"),
         ],
         sorts=[
-            SortConfig("Booking ID"),
-            SortConfig("Order ID"),
+            SortConfig("Booking ID_formatted"),
+            SortConfig("Order ID_formatted"),
             SortConfig("Start date_formatted"),
         ],
         date_grp_col="Start date_formatted",
@@ -190,12 +192,14 @@ SANTA_CONFIG = DataConfig(
     input_format={
         # Start date is automatically converted to a datetime
         # "Start date": FieldConfig(conversion="parse_date"),
+        "Booking ID": FieldConfig(conversion="parse_int"),
+        "Order ID": FieldConfig(conversion="parse_int"),
         "Product Title": FieldConfig(conversion="simplify_product"),
         "Quantity": FieldConfig(conversion="parse_int"),
         "Accompanying Adult": FieldConfig(conversion="parse_int"),
         "Accompanying Senior": FieldConfig(conversion="parse_int"),
         "Product price": FieldConfig(conversion="tidy_price"),
-        # "Present Type": FieldConfig(extractions=["extract_present_details"]),
+        "Present Type": FieldConfig(extractions=["extract_present_details"]),
     },
     ticket_config=TableConfig(
         columns=[
@@ -231,8 +235,8 @@ SANTA_CONFIG = DataConfig(
             ColumnConfig("Notes", "Special Needs"),
         ],
         sorts=[
-            SortConfig("Booking ID"),
-            SortConfig("Order ID"),
+            SortConfig("Booking ID_formatted"),
+            SortConfig("Order ID_formatted"),
             SortConfig("Start date_formatted"),
         ],
         date_grp_col="Start date_formatted",

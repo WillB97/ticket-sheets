@@ -142,6 +142,8 @@ def format_for_table(
                 ascending=not sort_config.reverse,
                 key=sort_func,
                 inplace=True,
+                ignore_index=True,
+                kind="stable",
             )
         except KeyError:
             # Skip sorts by absent columns

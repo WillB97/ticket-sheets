@@ -35,7 +35,10 @@ def parse_date(value: str, booking: pd.Series) -> datetime:
 
 def parse_int(value: str, booking: pd.Series) -> int:
     """Parse the value into an integer."""
-    return int(value)
+    try:
+        return int(value)
+    except ValueError:
+        return 0
 
 
 # Extract functions
@@ -43,7 +46,7 @@ def parse_int(value: str, booking: pd.Series) -> int:
 def extract_tickets(data: pd.DataFrame, col_name: str) -> None:
     """Extract the tickets from the "Price categories" field."""
 
-    def extract_ticket(row: pd.Series, col_name) -> Dict[str, int]:
+    def extract_ticket(row: pd.Series, col_name: str) -> Dict[str, int]:
         """Extract the ticket name and quantity from a ticket string."""
         tickets = {}
         ticket: str = row[col_name]
@@ -66,6 +69,65 @@ def extract_tickets(data: pd.DataFrame, col_name: str) -> None:
 
     # Merge the ticket data into the dataframe
     data[ticket_data.columns] = ticket_data
+
+
+def extract_present_details(data: pd.DataFrame, col_name: str) -> None:
+    """
+    Generate arrays of present ages and genders.
+
+    Also takes in ages from the "Child Age *" fields.
+    """
+
+    def format_present(row: pd.Series) -> str:
+        """Format the present value."""
+        gender_char = {"Boy": "B", "Girl": "G"}.get(row["gender"], "?")
+
+        # Take the age number at the start of the string
+        age = row["age"].split()[0]
+
+        # Special handling for 0/1 year olds
+        age = {"0": "U1", "1": "U2"}.get(age, age)
+        return f"{gender_char}{age}"
+
+    def present_details(row: pd.Series, col_name: str) -> List[str]:
+        """Reorganise the supplied present values into a list of age and gender."""
+        # Short-circuit if there are no present values
+        if row[col_name] == "":
+            return []
+
+        # This column is in the format: "#1: Boy"
+        # The age columns are in the format: "#1: 7 yrs old" or "#1: 1 to 2 yrs old"
+        gender_data = pd.DataFrame(
+            (
+                (num.strip("#"), gender_str.strip())
+                for gender in row[col_name].splitlines()
+                for num, gender_str in [gender.split(":")]
+            ),
+            columns=["number", "gender"],
+        ).set_index("number")
+
+        age_columns = filter(lambda col: col.startswith("Child Age"), row.index)
+        age_data = pd.DataFrame(
+            (
+                # Generate a single list of age values from the age columns
+                (num.strip("#"), age_str.strip())
+                for age_col in age_columns
+                for age_val in row[age_col].splitlines()
+                for num, age_str in [age_val.split(":")]
+            ),
+            columns=["number", "age"],
+        ).set_index("number")
+
+        # Merge gender and age data
+        present_data = gender_data.join(age_data, how="left", validate="one_to_one")
+        present_data["age"].fillna("Choose", inplace=True)
+
+        # Format each value
+        return present_data.apply(format_present, axis="columns").tolist()
+
+    data[f"{col_name}_formatted"] = data.apply(
+        present_details, axis="columns", args=(col_name,)
+    )
 
 
 # Format functions
@@ -168,8 +230,31 @@ def category_sum(values: pd.Series) -> Tuple[int, int]:
 
 def present_sum(values: pd.Series) -> Tuple[int, int]:
     """Sum the number of present tickets."""
-    _values_df = values.to_frame()
-    return "TODO", 1  # TODO
+
+    def categorise_presents(row: pd.Series, col_name: str) -> Dict[str, int]:
+        """Count the number of children and infants."""
+        presents: List[str] = row[col_name]
+        # infant presents start with 'BU' or 'GU', child presents start with 'B' or 'G'
+        infant_presents = list(
+            filter(lambda present: len(present) == 3 and present[1] == "U", presents)
+        )
+        child_presents = list(filter(lambda present: present not in infant_presents, presents))
+
+        return {"child_count": len(child_presents), "infant_count": len(infant_presents)}
+
+    values_df = values.to_frame()
+    # Make child and infant counts
+    count_df = values_df.apply(
+        categorise_presents, axis="columns", args=(values.name,), result_type="expand"
+    )
+
+    # Sum counts
+    sum_df = count_df.sum(axis="index")
+
+    # Format as string
+    totals_str = f"Child: {sum_df['child_count']}<br>Infant: {sum_df['infant_count']}"
+
+    return Markup(totals_str), 1
 
 
 def order_count_2(values: pd.Series) -> Tuple[int, int]:
