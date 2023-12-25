@@ -5,6 +5,7 @@ These include functions to extract the date and time, and to simplify the produc
 """
 
 import re
+from collections import defaultdict
 from datetime import datetime
 from typing import Dict, List, Tuple
 
@@ -48,7 +49,7 @@ def extract_tickets(data: pd.DataFrame, col_name: str) -> None:
 
     def extract_ticket(row: pd.Series, col_name: str) -> Dict[str, int]:
         """Extract the ticket name and quantity from a ticket string."""
-        tickets = {}
+        tickets = defaultdict(int)
         ticket: str = row[col_name]
         # Split each cell by newline
         ticket_fields = ticket.splitlines()
@@ -59,9 +60,9 @@ def extract_tickets(data: pd.DataFrame, col_name: str) -> None:
             ticket_qty = int(ticket_qty_data.split()[0])
 
             # Create columns for each ticket type
-            tickets[f"ticket_{ticket_name}"] = ticket_qty
+            tickets[f"ticket_{ticket_name}"] += ticket_qty
 
-        return tickets
+        return dict(tickets)
 
     ticket_data = data.apply(
         extract_ticket, axis="columns", args=(col_name,), result_type="expand"
@@ -186,17 +187,17 @@ def insert_html_newlines(value: str) -> str:
 # Total functions
 # These functions take a list of values and produce a single value
 # Return type is Tuple[return_value, colspan]
-def sum(values: pd.Series) -> Tuple[float, int]:
+def sum(values: pd.Series) -> Tuple[str, int]:
     """Sum the values."""
-    return values.sum(), 1
+    return Markup(f"<b>{values.sum()}</b>"), 1
 
 
 def price_sum(values: pd.Series) -> Tuple[str, int]:
     """Sum the values and format as a price."""
-    return format_price(values.sum()), 1
+    return Markup(f"<b>{format_price(values.sum())}</b>"), 1
 
 
-def order_count(values: pd.Series, colspan: int = 1) -> Tuple[int, int]:
+def order_count(values: pd.Series, colspan: int = 1) -> Tuple[str, int]:
     """Count the number of orders."""
     return Markup(f"<b>Orders:</b> {len(values)}"), colspan
 

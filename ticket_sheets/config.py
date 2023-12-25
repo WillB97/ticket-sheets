@@ -82,6 +82,7 @@ class FieldConfig(NamedTuple):
 
     conversion: str = ""
     extractions: Tuple[str] = tuple()
+    order: int = -1
 
 
 class SortConfig(NamedTuple):
@@ -196,10 +197,20 @@ SANTA_CONFIG = DataConfig(
         "Order ID": FieldConfig(conversion="parse_int"),
         "Product Title": FieldConfig(conversion="simplify_product"),
         "Quantity": FieldConfig(conversion="parse_int"),
-        "Accompanying Adult": FieldConfig(conversion="parse_int"),
-        "Accompanying Senior": FieldConfig(conversion="parse_int"),
-        "Product price": FieldConfig(conversion="tidy_price"),
+        # Must occur after Quantity
+        "Accompanying Adult": FieldConfig(
+            conversion="parse_int", extractions=["include_additional_adults"]
+        ),
+        "Accompanying Senior": FieldConfig(
+            conversion="parse_int", extractions=["include_additional_seniors"]
+        ),
+        # Must occur after Accompanying Adult and Accompanying Senior
+        "Product price": FieldConfig(conversion="tidy_price"),  # TODO: account for walkin
         "Present Type": FieldConfig(extractions=["extract_present_details"]),
+        # Needed for breakdown, must occur after Accompanying Adult and Accompanying Senior
+        "Price categories": FieldConfig(
+            extractions=["include_accompanying", "split_infant_present", "extract_tickets"]
+        ),
     },
     ticket_config=TableConfig(
         columns=[
