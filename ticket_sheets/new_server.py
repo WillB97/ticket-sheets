@@ -217,8 +217,6 @@ def global_vars():
         "csv_name": session.get("csv_name"),
         "csv_uploaded": session.get("csv_uploaded"),
         "config": {
-            "csv_name": session.get("csv_name"),
-            "csv_uploaded": session.get("csv_uploaded"),
             "csv_url": config["CSV URL"],
             "filter": config["product filter"],
             "hide_old": config["hide old orders"],

@@ -1,12 +1,14 @@
 {% extends "header.html" %}
 
+{% block pre_config %}{% endblock %}
+{% block config %}{% endblock %}
+
 {% block content %}
 <table class="w-100" style="table-layout: fixed">
     <tr>
         <td class="text-left"><b>SWINDON AND CRICKLADE RAILWAY</b></td>
         <td class="text-center">Exported at <b>{{ exported_at }}</b></td>
         <td class="text-center">Up to Order ID <b>{{ max_order_id }}</b></td>
-
     </tr>
 </table>
 <table class="w-100" style="table-layout: fixed">
@@ -31,11 +33,15 @@
                 <td class="text-center">{{ loop.index }}</td>
                 {% for field in row %}
                 <td class="text-center"
-                {% if field['end_family'] %}style="border-bottom:4px solid black !important"{% else %}
-                    {% if field['train_limit'] %}style="border-bottom:4px solid red !important"{% endif %}
+                    {% if field.end_family %}
+                        style="border-bottom:4px solid black !important"
+                    {% else %}
+                        {% if field.train_limit %}
+                            style="border-bottom:4px solid red !important"
+                        {% endif %}
                     {% endif %}
-                    data-toggle="popover" data-content="Order ID: {{field['order_id']}}" data-placement="top"
-                >{{ field['present'] }}</td>
+                    data-toggle="popover" data-content="Order ID: {{field.order_id}}" data-placement="top"
+                >{{ field.present }}</td>
                 {% endfor %}
             </tr>
         {% endfor %}
