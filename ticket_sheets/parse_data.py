@@ -95,9 +95,9 @@ def parse_bookings(data: pd.DataFrame, config: Dict[str, FieldConfig]) -> pd.Dat
     This function extracts processable values from the data and adds them to the
     dataframe using the configuration provided.
     """
-    # Iterate over each column in data and apply conversion if it exists
-    for col_name in data.columns:
-        if (col_config := config.get(col_name)) is not None:
+    # Iterate over each column in the config and apply conversion if it exists
+    for col_name, col_config in config.items():
+        if col_name in data.columns:
             if conv_name := col_config.conversion:
                 try:
                     conv_func = getattr(conversions, conv_name)

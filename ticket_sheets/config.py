@@ -209,7 +209,7 @@ SANTA_CONFIG = DataConfig(
         "Present Type": FieldConfig(extractions=["extract_present_details"]),
         # Needed for breakdown, must occur after Accompanying Adult and Accompanying Senior
         "Price categories": FieldConfig(
-            extractions=["include_accompanying", "split_infant_present", "extract_tickets"]
+            extractions=["include_accompanying", "split_infant_presents", "extract_tickets"]
         ),
     },
     ticket_config=TableConfig(
