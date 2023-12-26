@@ -151,16 +151,28 @@ def format_for_table(
 
     output_rows = []
     # group by date
-    if config.date_grp_col is not None:
-        for date_val, date_group in data.groupby(data[config.date_grp_col].dt.date):
+    if config.group_by_date:
+        for date_val, date_group in data.groupby(data["Start date_formatted"].dt.date):
             # If group by date, before each group, add date entry
             output_rows.append(TableRow("date", {"date": conversions.heading_date(date_val)}))
-            # Add each group to list
-            for _, row in date_group.iterrows():
-                output_rows.append(TableRow("booking", format_row(row, config)))
+
+            for _, time_group in date_group.groupby(data["Start date_formatted"].dt.time):
+                # Add each group to list
+                for _, row in time_group.iterrows():
+                    output_rows.append(TableRow("booking", format_row(row, config)))
+
+                if config.demark_train:
+                    # If demark train, after each group, add divider
+                    output_rows.append(TableRow("divider", {}))
+
             # If day totals, after each group, add day totals
             if daily_totals:
+                # Avoid having a divider before the day totals
+                if output_rows[-1].booking_type == "divider":
+                    _ = output_rows.pop()
+
                 output_rows.append(TableRow("totals", format_total_row(date_group, config)))
+                output_rows.append(TableRow("divider", {}))
     else:
         for _, row in data.iterrows():
             output_rows.append(TableRow("booking", format_row(row, config)))

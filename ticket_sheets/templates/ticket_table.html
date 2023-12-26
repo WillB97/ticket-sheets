@@ -43,13 +43,13 @@ Hide Totals</button>
         </thead>
         <tbody>
         {% for row in bookings %}
+            {% if row.booking_type != "divider" %}
             <tr
-            {% if row.booking_type == "totals" %}
-                id='total' style="border-bottom:4px solid"
-            {% elif active == 'tickets' and row.booking_type == "order" and loop.nextitem is defined
-            and loop.nextitem.booking_type == "order" and loop.nextitem.booking['Train'] != row['booking']['Train'] %}
-                style="border-bottom:4px solid"
-            {% endif %}>
+            {% if row.booking_type == "totals" %}id='total'{% endif %}
+            {% if loop.nextitem is defined and loop.nextitem.booking_type == "divider" %}
+            style="border-bottom:4px solid"
+            {% endif %}
+            >
             {% if row.booking_type == "date" %}
                 <td colspan="{{ columns }}" class="px-5"><b>{{ row.booking['date'] }}</b></td>
             {% elif row.booking_type == "totals" %}
@@ -74,6 +74,7 @@ Hide Totals</button>
                     <button type="button" class="btn btn-warning" onclick="$(this).closest('tr').remove();">Hide</button>
                 </td>
             </tr>
+            {% endif %} {# row.booking_type != "divider" #}
         {% endfor %}
         </tbody>
     </table>

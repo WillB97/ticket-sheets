@@ -97,7 +97,7 @@ class TableConfig(NamedTuple):
 
     columns: List[ColumnConfig]
     sorts: List[SortConfig]
-    date_grp_col: Optional[str] = None
+    group_by_date: bool = False
     demark_train: bool = False
 
 
@@ -157,8 +157,8 @@ DEFAULT_CONFIG = DataConfig(
             SortConfig("Order ID_formatted"),
             SortConfig("Start date_formatted"),
         ],
-        date_grp_col="Start date_formatted",
-        demark_train=True,
+        group_by_date=True,
+        demark_train=False,
     ),
     alpha_config=TableConfig(
         columns=[
@@ -183,7 +183,7 @@ DEFAULT_CONFIG = DataConfig(
             ColumnConfig("Notes", "Special Needs"),
         ],
         sorts=[SortConfig("Customer first name"), SortConfig("Customer last name")],
-        date_grp_col=None,
+        group_by_date=False,
         demark_train=False,
     ),
 )
@@ -250,7 +250,7 @@ SANTA_CONFIG = DataConfig(
             SortConfig("Order ID_formatted"),
             SortConfig("Start date_formatted"),
         ],
-        date_grp_col="Start date_formatted",
+        group_by_date=True,
         demark_train=True,
     ),
     alpha_config=TableConfig(
@@ -275,7 +275,7 @@ SANTA_CONFIG = DataConfig(
             ColumnConfig("Notes", "Special Needs"),
         ],
         sorts=[SortConfig("Customer first name"), SortConfig("Customer last name")],
-        date_grp_col=None,
+        group_by_date=False,
         demark_train=False,
     ),
 )
