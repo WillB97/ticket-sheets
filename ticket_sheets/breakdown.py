@@ -6,7 +6,6 @@ import pandas as pd
 from flask import Markup
 
 # TODO present breakdowns
-# TODO sort ticket names
 
 
 class ExtraStats(NamedTuple):
@@ -53,6 +52,7 @@ def generate_overall_breakdown(data: pd.DataFrame) -> Totals:
     ticket_totals = data[ticket_cols].sum(axis="index").to_dict()
     # Remove the ticket_ prefix from the column names
     ticket_totals = {ticket.lstrip("ticket_"): qty for ticket, qty in ticket_totals.items()}
+    ticket_totals = _sort_tickets(ticket_totals)
 
     if "Product price_formatted" in data.columns:
         # Extract the value to a python float
@@ -83,6 +83,7 @@ def generate_extra_stats(data: pd.DataFrame) -> ExtraStats:
     ticket_avgs = data[ticket_cols].mean(axis="index").to_dict()
     # Remove the ticket_ prefix from the column names
     ticket_avgs = {ticket.lstrip("ticket_"): qty for ticket, qty in ticket_avgs.items()}
+    ticket_avgs = _sort_tickets(ticket_avgs)
     avg_makeup = [f"<b>{name[0]}</b>: {qty:.4f}" for name, qty in ticket_avgs.items()]
 
     if "Product price_formatted" in data.columns:
@@ -105,6 +106,7 @@ def generate_extra_stats(data: pd.DataFrame) -> ExtraStats:
         max_order_tickets = {
             ticket.lstrip("ticket_"): qty for ticket, qty in max_order_ticket_cols.items()
         }
+        max_order_tickets = _sort_tickets(max_order_tickets)
         max_makeup = [
             f"<b>{name[0]}</b>: {qty:.0f}" for name, qty in max_order_tickets.items()
         ]
@@ -138,7 +140,7 @@ def generate_event_breakdown(data: pd.DataFrame) -> Dict[Tuple[str, str], EventT
         # extract_tickets needs to be in the input format
         raise RuntimeError("No ticket columns found")
 
-    # TODO group by date and event
+    # Group by date and event
     for (date_grp, event_grp), event_data in data.groupby([
         data["Start date_formatted"].dt.date,
         "Product title_formatted",
@@ -148,6 +150,7 @@ def generate_event_breakdown(data: pd.DataFrame) -> Dict[Tuple[str, str], EventT
         ticket_totals = {
             ticket.lstrip("ticket_"): qty for ticket, qty in ticket_totals.items()
         }
+        ticket_totals = _sort_tickets(ticket_totals)
 
         if "Product price_formatted" in event_data.columns:
             # Extract the value to a python float
@@ -165,3 +168,13 @@ def generate_event_breakdown(data: pd.DataFrame) -> Dict[Tuple[str, str], EventT
         )
 
     return event_totals
+
+
+def _sort_tickets(tickets: Dict[str, int]) -> Dict[str, int]:
+    """Sort the standard tickets."""
+    ticket_order = {"Adult": 1, "Senior": 2, "Child": 3, "Infant": 4}
+
+    ticket_list = list(tickets.items())
+    ticket_list.sort(key=lambda x: ticket_order.get(x[0], 5))
+
+    return dict(ticket_list)
