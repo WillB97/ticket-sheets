@@ -9,6 +9,7 @@ from werkzeug.exceptions import InternalServerError
 
 from flask_session import Session
 
+from .breakdown import generate_event_breakdown, generate_overall_breakdown
 from .config import DataConfig, get_config, refresh_config, update_config
 from .parse_data import apply_filters, format_for_table, get_dates, parse_bookings, parse_csv
 
@@ -197,6 +198,36 @@ def alphabetical_orders():
         no_totals=True,
         show_filter=True,
         active="alpha",
+        **global_vars(),
+    )
+
+
+@app.route("/breakdown")
+def ticket_breakdown():
+    """Render a summary of the ticket data."""
+    data = session["csv_data"]
+    filtered_data = apply_filters(data, config)
+    table_configs: DataConfig = config["data_config"]
+
+    parsed_bookings = parse_bookings(filtered_data, table_configs.input_format)
+
+    # Calculate grand totals and extra statistics
+    grand_totals = generate_overall_breakdown(parsed_bookings)
+
+    # (date, event) -> (tickets, num_tickets, total value, num orders)
+    event_totals = generate_event_breakdown(parsed_bookings)
+    print(event_totals.keys())
+
+    # TODO present breakdowns
+    # By train: date -> train -> count
+    # By age: date -> age -> count
+
+    return render_template(
+        "ticket_breakdown.html",
+        totals=grand_totals,
+        breakdown=event_totals,
+        presents=False,
+        active="breakdown",
         **global_vars(),
     )
 

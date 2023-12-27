@@ -19,6 +19,7 @@ def simplify_product(value: str, booking: pd.Series) -> str:
     """Shorten product names to fit in the table."""
     value = value.replace("Weekend", "w/e")
     value = value.replace("- Day Ticket", "")
+    value = value.replace("Tickets", "")
     value = value.replace("Ticket", "")
     return value.strip()
 

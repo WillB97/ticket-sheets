@@ -2,65 +2,55 @@
 
 {% block content %}
 <div class="card-deck">
-    {% for date, date_group in breakdown.items() %}
-        {% for event, event_bookings in date_group.items() %}
-            <!-- Beware these hardcoded widths -->
-            <div class="card mb-3" style="min-width: 16rem;max-width:24rem">
-                <div class="card-header">
-                    <h4 style="text-align: center">
-                        <b>{{date}}</b><br>
-                        {{event}}
-                    </h4>
-                </div>
-                <div class="card-body">
-
-                    <table class="table table-bordered w-auto mx-auto">
-                        <tbody>
-                            {% for ticket_type in event_bookings.ticket_types %}
-                            <tr>
-                                <th class="text-center" scope="row">{{ticket_type}}</th>
-                                <td class="text-center">{{
-                                    event_bookings.full_value_tickets[ticket_type]|default(0)
-                                    + event_bookings.reduced_tickets[ticket_type]|default(0)
-                                }}</td>
-                            </tr>
-                            {% endfor %}
-                        </tbody>
-                    </table>
-                </div>
-                <div class="card-footer">
-                    <b>Total tickets:</b> {{
-                        event_bookings.full_value_tickets.values()|sum
-                        + event_bookings.reduced_tickets.values()|sum
-                    }}<br>
-                    <b>Total value:</b> £{{ "%.2f"|format(event_bookings.total_value) }}<br>
-                    {% if event_bookings.total_saving != 0.0 %}
-                    <b>Total savings:</b> £{{ "%.2f"|format(event_bookings.total_saving) }}<br>
-                    {% endif %}
-                    <b>Orders:</b> {{event_bookings.total_orders}}
-                </div>
+    {% for (date, event), event_bookings in breakdown.items() %}
+        <!-- Beware these hardcoded widths -->
+        <div class="card mb-3" style="min-width: 16rem;max-width:24rem">
+            <div class="card-header">
+                <h4 style="text-align: center">
+                    <b>{{date}}</b><br>
+                    {{event}}
+                </h4>
             </div>
-        {% endfor %}
+            <div class="card-body">
+
+                <table class="table table-bordered w-auto mx-auto">
+                    <tbody>
+                        {% for ticket_type, qty in event_bookings.tickets.items() %}
+                        <tr>
+                            <th class="text-center" scope="row">{{ticket_type}}</th>
+                            <td class="text-center">{{qty}}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            <div class="card-footer">
+                <b>Total tickets:</b> {{event_bookings.num_tickets}}<br>
+                <b>Total value:</b> £{{ "%.2f"|format(event_bookings.total_value) }}<br>
+                <b>Orders:</b> {{event_bookings.num_orders}}
+            </div>
+        </div>
     {% endfor %}
 </div>
 <div style="text-align: center;">
     <h3>Grand Totals</h3>
     <b>Total Value:</b> £{{ "%.2f"|format(totals.total_value) }}<br>
-    <b>Total Orders:</b> {{totals.total_orders}}<br>
-    <b>Total Tickets:</b> {{totals.total_tickets}}<br>
+    <b>Total Orders:</b> {{totals.num_orders}}<br>
+    <b>Total Tickets:</b> {{totals.num_tickets}}<br>
     <br>
     <table id='ticket-types' class="table table-bordered table-sm w-auto mx-auto">
         <!-- <thead><tr><th></th><th></th></tr></thead> -->
-        {% for ticket, qty in totals.total_types.items() %}
+        {% for ticket, qty in totals.tickets.items() %}
         <tr><td>{{ticket}}</td><td>{{qty}}</td></tr>
         {% endfor %}
     </table>
     <br>
-    <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#priceModal" id='priceModalOpen'>
+    {# <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#priceModal" id='priceModalOpen'>
         Set prices
-    </button>
+    </button> #}
 </div>
 
+{% if presents %}
 <hr>
 <h2 style="text-align: center;">Presents by Train</h2>
 <div class="table-responsive">
@@ -121,21 +111,24 @@
         </tbody>
     </table>
 </div>
+{% endif %}
 
+{% if totals.extra_stats %}
 <hr>
 <h2 style="text-align: center;">Extra Stats</h2>
 <div style="text-align: center;">
-    <b>Most Expensive:</b> £{{ "%.2f"|format(extra_stats.max_price.price) }}
-    (<b>A:</b>{{extra_stats.max_price.adult}}, <b>S:</b>{{extra_stats.max_price.senior}},
-    <b>C:</b>{{extra_stats.max_price.child}}, <b>I:</b>{{extra_stats.max_price.infant}})  (Order:{{extra_stats.max_price.order}})<br>
+    <b>Most Expensive:</b> £{{ "%.2f"|format(totals.extra_stats.max_price) }}
+    ({{ totals.extra_stats.max_price_ticket_makeup }})
+    (Order:{{totals.extra_stats.max_price_order}})<br>
 
-    <b>Most Presents:</b> {{extra_stats.max_presents.presents}}  (Order:{{extra_stats.max_presents.order}})<br>
-    <b>Average Order Makeup:</b> £{{ "%.2f"|format(extra_stats.avg_order.price) }}
-    <b>A:</b> {{"%.4f"|format(extra_stats.avg_order.adult)}}, <b>S:</b> {{"%.4f"|format(extra_stats.avg_order.senior)}},
-    <b>C:</b> {{"%.4f"|format(extra_stats.avg_order.child)}}, <b>I:</b> {{"%.4f"|format(extra_stats.avg_order.infant)}}<br>
+    {# <b>Most Presents:</b> {{extra_stats.max_presents.presents}}  (Order:{{extra_stats.max_presents.order}})<br> #}
+    <b>Average Order Makeup:</b> £{{ "%.2f"|format(totals.extra_stats.average_value) }}
+    {{ totals.extra_stats.average_ticket_makeup }}
+    <br>
 </div>
+{% endif %}
 
-<div class="modal" id="priceModal">
+{# <div class="modal" id="priceModal">
     <div class="modal-dialog">
         <div class="modal-content">
 
@@ -179,7 +172,7 @@
 
         </div>
     </div>
-</div>
+</div> #}
 
 <script>
     function addRow(tableName) {

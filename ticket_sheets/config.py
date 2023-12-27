@@ -115,7 +115,7 @@ DEFAULT_CONFIG = DataConfig(
         # "Start date": FieldConfig(conversion="parse_date"),
         "Booking ID": FieldConfig(conversion="parse_int"),
         "Order ID": FieldConfig(conversion="parse_int"),
-        "Product Title": FieldConfig(conversion="simplify_product"),
+        "Product title": FieldConfig(conversion="simplify_product"),
         "Quantity": FieldConfig(conversion="parse_int"),
         "Product price": FieldConfig(conversion="tidy_price"),
     },
@@ -195,7 +195,7 @@ SANTA_CONFIG = DataConfig(
         # "Start date": FieldConfig(conversion="parse_date"),
         "Booking ID": FieldConfig(conversion="parse_int"),
         "Order ID": FieldConfig(conversion="parse_int"),
-        "Product Title": FieldConfig(conversion="simplify_product"),
+        "Product title": FieldConfig(conversion="simplify_product"),
         "Quantity": FieldConfig(conversion="parse_int"),
         # Must occur after Quantity
         "Accompanying Adult": FieldConfig(
