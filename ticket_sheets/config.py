@@ -107,6 +107,8 @@ class DataConfig(NamedTuple):
     input_format: Dict[str, FieldConfig]
     ticket_config: TableConfig
     alpha_config: TableConfig
+    train_limits: Dict[str, int]
+    presents_column: Optional[str] = None
 
 
 DEFAULT_CONFIG = DataConfig(
@@ -186,6 +188,7 @@ DEFAULT_CONFIG = DataConfig(
         group_by_date=False,
         demark_train=False,
     ),
+    train_limits={},
 )
 
 
@@ -278,4 +281,18 @@ SANTA_CONFIG = DataConfig(
         group_by_date=False,
         demark_train=False,
     ),
+    train_limits={
+        "10:30": 15,
+        "11:00": 20,
+        "11:30": 20,
+        "12:00": 20,
+        "12:30": 15,
+        "13:30": 20,
+        "14:00": 20,
+        "14:30": 20,
+        "15:00": 20,
+        "15:30": 20,
+        "16:00": 10,
+    },
+    presents_column="Present Type_formatted",
 )

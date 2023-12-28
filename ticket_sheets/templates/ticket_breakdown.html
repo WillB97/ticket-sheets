@@ -57,26 +57,18 @@
     <table class="table table-bordered table-sm w-auto mx-auto">
         <thead><tr>
             <th></th>
-            {% for train in times %}
-            <th class="text-center" scope="col">{{train}}</th>
+            {% for train in train_times %}
+            <th class="text-center" scope="col">{{ train }}</th>
             {% endfor %}
             <th class="text-center" scope="col" style="border-left:2px solid">Total</th>
         </tr></thead>
-        <tbody>{% for date in dates %}
+        <tbody>{% for date, day_presents in presents.by_train.items() %}
             <tr>
-                <td class="text-center"><b>{{date}}</b></td>
-            {% for train in times %}
-                {% if present_breakdown['by-train'][date] is defined %}
-                <td class="text-center">{{present_breakdown['by-train'][date][train] | default(0)}}</td>
-                {% else %}
-                <td class="text-center">-</td>
-                {% endif %}
+                <td class="text-center"><b>{{ date }}</b></td>
+            {% for train in train_times %}
+                <td class="text-center">{{ day_presents[train] | default(0) }}</td>
             {% endfor %}
-            {% if present_breakdown['by-day'][date] is defined %}
-            <td class="text-center" style="border-left:2px solid">{{present_breakdown['by-day'][date] | default(0)}}</td>
-            {% else %}
-            <td class="text-center" style="border-left:2px solid">-</td>
-            {% endif %}
+                <td class="text-center" style="border-left:2px solid">{{ presents.by_day[date] | default(0) }}</td>
             </tr>
         {% endfor %}</tbody>
     </table>
@@ -86,26 +78,23 @@
     <table class="table table-bordered table-sm w-auto mx-auto">
         <thead><tr>
             <th></th>
-            {% for age in ages %}
+            {% for age in present_ages %}
             <th class="text-center" scope="col">{{age}}</th>
             {% endfor %}
         </tr></thead>
-        <tbody>{% for date in dates %}
+        <tbody>
+        {% for date, day_presents in presents.by_age.items() %}
             <tr>
                 <td class="text-center"><b>{{date}}</b></td>
-                {% for age in ages %}
-                    {% if present_breakdown['by-age'][date] is defined %}
-                    <td class="text-center">{{present_breakdown['by-age'][date][age] | default(0)}}</td>
-                    {% else %}
-                    <td class="text-center">-</td>
-                    {% endif %}
+                {% for age in present_ages %}
+                    <td class="text-center">{{ day_presents[age] | default(0) }}</td>
                 {% endfor %}
             </tr>
         {% endfor %}
             <tr>
-            <td class="text-center"><b>Totals</b></td>
-            {% for age in ages %}
-                <td class="text-center">{{present_totals[age] | default(0)}}</td>
+                <td class="text-center"><b>Totals</b></td>
+            {% for age in present_ages %}
+                <td class="text-center">{{ presents.age_totals[age] | default(0) }}</td>
             {% endfor %}
             </tr>
         </tbody>
@@ -121,7 +110,9 @@
     ({{ totals.extra_stats.max_price_ticket_makeup }})
     (Order:{{totals.extra_stats.max_price_order}})<br>
 
-    {# <b>Most Presents:</b> {{extra_stats.max_presents.presents}}  (Order:{{extra_stats.max_presents.order}})<br> #}
+    {% if totals.extra_stats.max_presents_order %}
+    <b>Most Presents:</b> {{ totals.extra_stats.max_presents }}  (Order:{{ totals.extra_stats.max_presents_order }})<br>
+    {% endif %}
     <b>Average Order Makeup:</b> £{{ "%.2f"|format(totals.extra_stats.average_value) }}
     {{ totals.extra_stats.average_ticket_makeup }}
     <br>

@@ -1,11 +1,16 @@
 """Generates summary statistics from the pre-processed dataframe."""
 
-from typing import Dict, NamedTuple, Optional, Tuple
+from typing import Dict, List, NamedTuple, Optional, Tuple
 
 import pandas as pd
 from flask import Markup
 
-# TODO present breakdowns
+PRESENT_AGES = [
+    *[f"BU{i}" for i in range(1, 3)],
+    *[f"B{i}" for i in range(3, 15)],
+    *[f"GU{i}" for i in range(1, 3)],
+    *[f"G{i}" for i in range(3, 15)],
+]
 
 
 class ExtraStats(NamedTuple):
@@ -18,6 +23,8 @@ class ExtraStats(NamedTuple):
     average_value: float
     average_tickets: Dict[str, float]
     average_ticket_makeup: str
+    max_presents: Optional[int] = None
+    max_presents_order: Optional[str] = None
 
 
 class Totals(NamedTuple):
@@ -41,7 +48,9 @@ class EventTotal(NamedTuple):
     num_orders: int
 
 
-def generate_overall_breakdown(data: pd.DataFrame) -> Totals:
+def generate_overall_breakdown(
+    data: pd.DataFrame, presents_column: Optional[str] = None
+) -> Totals:
     """Generate the grand totals and extra statistics."""
     ticket_cols = [col for col in data.columns if col.startswith("ticket_")]
 
@@ -67,11 +76,13 @@ def generate_overall_breakdown(data: pd.DataFrame) -> Totals:
         num_orders=len(data),
         online_value=total_value,  # TODO
         walkin_value=0.0,
-        extra_stats=generate_extra_stats(data),
+        extra_stats=generate_extra_stats(data, presents_column),
     )
 
 
-def generate_extra_stats(data: pd.DataFrame) -> ExtraStats:
+def generate_extra_stats(
+    data: pd.DataFrame, presents_column: Optional[str] = None
+) -> ExtraStats:
     """Generate the extra statistics."""
     ticket_cols = [col for col in data.columns if col.startswith("ticket_")]
 
@@ -116,6 +127,12 @@ def generate_extra_stats(data: pd.DataFrame) -> ExtraStats:
         max_order_tickets = {}
         max_makeup = "-"
 
+    if presents_column is not None:
+        max_presents_order, max_presents = get_max_presents(data, presents_column)
+    else:
+        max_presents_order = None
+        max_presents = None
+
     return ExtraStats(
         max_price_order=max_order_num,
         max_price=max_order_value,
@@ -124,6 +141,8 @@ def generate_extra_stats(data: pd.DataFrame) -> ExtraStats:
         average_value=avg_value,
         average_tickets=ticket_avgs,
         average_ticket_makeup=Markup(", ".join(avg_makeup)),
+        max_presents=max_presents,
+        max_presents_order=max_presents_order,
     )
 
 
@@ -139,6 +158,8 @@ def generate_event_breakdown(data: pd.DataFrame) -> Dict[Tuple[str, str], EventT
     if not ticket_cols:
         # extract_tickets needs to be in the input format
         raise RuntimeError("No ticket columns found")
+
+    data.sort_values("Start date_formatted", ignore_index=True, inplace=True)
 
     # Group by date and event
     for (date_grp, event_grp), event_data in data.groupby([
@@ -168,6 +189,98 @@ def generate_event_breakdown(data: pd.DataFrame) -> Dict[Tuple[str, str], EventT
         )
 
     return event_totals
+
+
+def summarise_presents_by_age(data: pd.DataFrame, col_name: str) -> pd.DataFrame:
+    """Summarise the presents by age."""
+    # Use explode to split the list of presents into separate rows
+    present_ages = data[["Start date_formatted", col_name]].explode(col_name).dropna()
+    present_ages.rename(
+        columns={col_name: "age", "Start date_formatted": "date_time"}, inplace=True
+    )
+    present_ages.sort_values("date_time", ignore_index=True, inplace=True)
+
+    present_ages["date"] = present_ages["date_time"].dt.date.astype("datetime64[ns]")
+
+    # Count the number of presents for each age on each day
+    present_ages = (
+        present_ages[["date", "age"]]
+        .groupby(["date", "age"])
+        .size()
+        .rename("count")
+        .astype("Int64")
+        .reset_index(drop=False)
+    )
+
+    # Pivot to get the ages as columns and the dates as rows
+    present_table = present_ages.pivot(index="date", columns="age", values="count")
+
+    # sort rows by date
+    present_table.sort_index(inplace=True)
+
+    # format the dates in the index
+    present_table.index = present_table.index.strftime("%d/%m/%y")
+
+    # fill in missing ages
+    present_table = present_table.reindex(columns=PRESENT_AGES, fill_value=0)
+    present_table.fillna(0, inplace=True)
+
+    return present_table
+
+
+def summarise_presents_by_train(
+    data: pd.DataFrame, train_times: List[str], col_name: str
+) -> pd.DataFrame:
+    """Summarise the presents by train."""
+    # count the number of presents for each booking
+    present_counts = (
+        pd.concat(
+            [data["Start date_formatted"], data[col_name].apply(len)],
+            names=["date_time", "present_count"],
+            axis=1,
+        )
+        .rename(columns={"Start date_formatted": "date_time", col_name: "present_count"})
+        .sort_values("date_time")
+    )
+
+    # group by date and train
+    present_counts = present_counts.groupby("date_time").sum().reset_index(drop=False)
+
+    present_counts["date"] = present_counts["date_time"].dt.date.astype("datetime64[ns]")
+    present_counts["train"] = present_counts["date_time"].dt.time.apply(
+        lambda x: x.strftime("%H:%M")
+    )
+
+    # pivot to get the train times as columns
+    present_table = present_counts.pivot(index="date", columns="train", values="present_count")
+
+    # sort rows by date
+    present_table.sort_index(inplace=True)
+
+    # format the dates in the index
+    present_table.index = present_table.index.strftime("%d/%m/%y")
+
+    # fill in missing train times
+    present_table = present_table.reindex(columns=train_times, fill_value=0)
+    present_table.fillna(0, inplace=True)
+
+    return present_table
+
+
+def get_max_presents(data: pd.DataFrame, col_name: str) -> Tuple[str, int]:
+    """Get the maximum number of presents."""
+    # count the number of presents for each booking
+    present_counts = (
+        pd.concat([data["Order ID"], data[col_name].apply(len)], axis=1)
+        .rename(columns={col_name: "present_count"})
+        .sort_values("present_count", ascending=False)
+        .reset_index(drop=True)
+    )
+
+    # Select highest present count (due to the sort above, this will be the first row)
+    max_presents = present_counts.iloc[0]
+
+    return max_presents["Order ID"], max_presents["present_count"]
 
 
 def _sort_tickets(tickets: Dict[str, int]) -> Dict[str, int]:

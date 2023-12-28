@@ -9,7 +9,12 @@ from werkzeug.exceptions import InternalServerError
 
 from flask_session import Session
 
-from .breakdown import generate_event_breakdown, generate_overall_breakdown
+from .breakdown import (
+    generate_event_breakdown,
+    generate_overall_breakdown,
+    summarise_presents_by_age,
+    summarise_presents_by_train,
+)
 from .config import DataConfig, get_config, refresh_config, update_config
 from .parse_data import apply_filters, format_for_table, get_dates, parse_bookings, parse_csv
 
@@ -147,7 +152,7 @@ def update_config_values():
 @app.route("/tickets")
 def ticket_table():
     """Render the ticket data as a table in date order."""
-    data = session["csv_data"]
+    data = session["csv_data"].copy()
     filtered_data = apply_filters(data, config)
     table_configs: DataConfig = config["data_config"]
 
@@ -177,7 +182,7 @@ def ticket_table():
 @app.route("/alpha")
 def alphabetical_orders():
     """Render the ticket data as a table in alphabetical order."""
-    data = session["csv_data"]
+    data = session["csv_data"].copy()
     filtered_data = apply_filters(data, config)
     table_configs: DataConfig = config["data_config"]
 
@@ -205,7 +210,7 @@ def alphabetical_orders():
 @app.route("/breakdown")
 def ticket_breakdown():
     """Render a summary of the ticket data."""
-    data = session["csv_data"]
+    data = session["csv_data"].copy()
     filtered_data = apply_filters(data, config)
     table_configs: DataConfig = config["data_config"]
 
@@ -216,17 +221,48 @@ def ticket_breakdown():
 
     # (date, event) -> (tickets, num_tickets, total value, num orders)
     event_totals = generate_event_breakdown(parsed_bookings)
-    print(event_totals.keys())
 
-    # TODO present breakdowns
-    # By train: date -> train -> count
-    # By age: date -> age -> count
+    if table_configs.presents_column is not None:
+        train_times = list(table_configs.train_limits.keys())
+
+        presents_by_age = summarise_presents_by_age(
+            parsed_bookings, table_configs.presents_column
+        )
+        presents_by_train = summarise_presents_by_train(
+            parsed_bookings, train_times=train_times, col_name=table_configs.presents_column
+        )
+
+        # Convert to nested dicts
+        # (date, train): count -> date: train: count
+        train_present_groups = defaultdict(dict)
+        for (date, train), count in presents_by_train.items():
+            train_present_groups[date][train] = count
+
+        # (date, age): count -> date: age: count
+        age_present_groups = defaultdict(dict)
+        for (date, age), count in presents_by_age.items():
+            age_present_groups[date][age] = count
+
+        presents = {
+            # Convert back to regular dicts
+            "by_age": dict(age_present_groups),
+            "by_train": dict(train_present_groups),
+            "by_day": {
+                day: sum(trains.values()) for day, trains in train_present_groups.items()
+            },
+            "age_totals": {},
+        }
+    else:
+        presents = None
+        train_times = []
 
     return render_template(
         "ticket_breakdown.html",
         totals=grand_totals,
         breakdown=event_totals,
-        presents=False,
+        presents=presents,
+        train_times=train_times,
+        present_ages=PRESENT_AGES,
         active="breakdown",
         **global_vars(),
     )
@@ -235,7 +271,7 @@ def ticket_breakdown():
 @app.route("/tally")
 def tally_index():
     """Render the index page for the present tally sheets."""
-    data = session["csv_data"]
+    data = session["csv_data"].copy()
     filtered_data = apply_filters(data, config)
     dates = get_dates(filtered_data)
 
