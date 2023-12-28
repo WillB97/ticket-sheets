@@ -10,6 +10,7 @@ from werkzeug.exceptions import InternalServerError
 from flask_session import Session
 
 from .breakdown import (
+    PRESENT_AGES,
     generate_event_breakdown,
     generate_overall_breakdown,
     summarise_presents_by_age,
@@ -217,7 +218,9 @@ def ticket_breakdown():
     parsed_bookings = parse_bookings(filtered_data, table_configs.input_format)
 
     # Calculate grand totals and extra statistics
-    grand_totals = generate_overall_breakdown(parsed_bookings)
+    grand_totals = generate_overall_breakdown(
+        parsed_bookings, presents_column=table_configs.presents_column
+    )
 
     # (date, event) -> (tickets, num_tickets, total value, num orders)
     event_totals = generate_event_breakdown(parsed_bookings)
@@ -232,25 +235,17 @@ def ticket_breakdown():
             parsed_bookings, train_times=train_times, col_name=table_configs.presents_column
         )
 
-        # Convert to nested dicts
-        # (date, train): count -> date: train: count
-        train_present_groups = defaultdict(dict)
-        for (date, train), count in presents_by_train.items():
-            train_present_groups[date][train] = count
+        # date: train: count
+        train_present_groups = presents_by_train.to_dict("index")
 
-        # (date, age): count -> date: age: count
-        age_present_groups = defaultdict(dict)
-        for (date, age), count in presents_by_age.items():
-            age_present_groups[date][age] = count
+        # date: age: count
+        age_present_groups = presents_by_age.to_dict("index")
 
         presents = {
-            # Convert back to regular dicts
-            "by_age": dict(age_present_groups),
-            "by_train": dict(train_present_groups),
-            "by_day": {
-                day: sum(trains.values()) for day, trains in train_present_groups.items()
-            },
-            "age_totals": {},
+            "by_train": train_present_groups,
+            "by_day": presents_by_train.sum(axis="columns").to_dict(),
+            "by_age": age_present_groups,
+            "age_totals": presents_by_age.sum(axis="index").to_dict(),
         }
     else:
         presents = None
