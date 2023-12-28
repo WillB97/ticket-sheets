@@ -89,8 +89,8 @@ def extract_present_details(data: pd.DataFrame, col_name: str) -> None:
         # Take the age number at the start of the string
         age = row["age"].split()[0]
 
-        # Special handling for 0/1 year olds
-        age = {"0": "U1", "1": "U2"}.get(age, age)
+        # Special handling for under 1 year olds
+        age = {"0": "U1"}.get(age, age)
         return f"{gender_char}{age}"
 
     def present_details(row: pd.Series, col_name: str) -> List[str]:

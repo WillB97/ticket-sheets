@@ -6,10 +6,10 @@ import pandas as pd
 from flask import Markup
 
 PRESENT_AGES = [
-    *[f"BU{i}" for i in range(1, 3)],
-    *[f"B{i}" for i in range(3, 15)],
-    *[f"GU{i}" for i in range(1, 3)],
-    *[f"G{i}" for i in range(3, 15)],
+    "BU1",
+    *[f"B{i}" for i in range(1, 15)],
+    "GU1",
+    *[f"G{i}" for i in range(1, 15)],
 ]
 
 
