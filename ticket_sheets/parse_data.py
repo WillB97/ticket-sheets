@@ -10,9 +10,9 @@ from typing import Callable, Dict, List, NamedTuple
 import pandas as pd
 from flask import Markup
 
-from ticket_sheets import conversions
-
 from .config import FieldConfig, TableConfig
+from .utils import conversions, extractions, formatters
+from .utils import totals as total_funcs
 
 
 class TableRow(NamedTuple):
@@ -109,7 +109,7 @@ def parse_bookings(data: pd.DataFrame, config: Dict[str, FieldConfig]) -> pd.Dat
                 )
             for extract_name in col_config.extractions:
                 try:
-                    extract_func = getattr(conversions, extract_name)
+                    extract_func = getattr(extractions, extract_name)
                 except AttributeError:
                     raise ValueError(f"Invalid extraction name {extract_name}")
                 # Extraction functions modify the dataframe in place
@@ -154,7 +154,7 @@ def format_for_table(
     if config.group_by_date:
         for date_val, date_group in data.groupby(data["Start date_formatted"].dt.date):
             # If group by date, before each group, add date entry
-            output_rows.append(TableRow("date", {"date": conversions.heading_date(date_val)}))
+            output_rows.append(TableRow("date", {"date": formatters.heading_date(date_val)}))
 
             for _, time_group in date_group.groupby(data["Start date_formatted"].dt.time):
                 # Add each group to list
@@ -202,7 +202,7 @@ def format_row(row: pd.Series, config: TableConfig) -> Dict[str, str]:
             # Apply formatting to output values
             if col_config.formatter:
                 try:
-                    format_func = getattr(conversions, col_config.formatter)
+                    format_func = getattr(formatters, col_config.formatter)
                 except AttributeError:
                     raise ValueError(f"Invalid format name {col_config.formatter}")
                 value = format_func(raw_value)
@@ -234,7 +234,7 @@ def format_total_row(day_data: pd.DataFrame, config: TableConfig) -> Dict[str, s
             col_values = day_data[col_config.input_column]
             # Apply total method to output values
             try:
-                total_func = getattr(conversions, col_config.total_method)
+                total_func = getattr(total_funcs, col_config.total_method)
             except AttributeError:
                 raise ValueError(f"Invalid total method name {col_config.total_method}")
 
