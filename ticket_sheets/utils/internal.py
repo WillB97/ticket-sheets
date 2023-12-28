@@ -25,3 +25,13 @@ def update_tickets(ticket_lines: List[str], ticket_name: str, new_val: int) -> N
             break
     else:
         ticket_lines.append(f"{ticket_name}: {new_val}")
+
+
+def sort_tickets(tickets: Dict[str, int]) -> Dict[str, int]:
+    """Sort the standard tickets."""
+    ticket_order = {"Adult": 1, "Senior": 2, "Child": 3, "Infant": 4}
+
+    ticket_list = list(tickets.items())
+    ticket_list.sort(key=lambda x: ticket_order.get(x[0], 5))
+
+    return dict(ticket_list)

@@ -12,7 +12,7 @@ from flask import Markup
 
 from .extractions import extract_tickets
 from .formatters import format_price
-from .internal import categorise_presents
+from .internal import categorise_presents, sort_tickets
 
 
 def sum(values: pd.Series) -> Tuple[str, int]:
@@ -50,7 +50,8 @@ def category_sum(values: pd.Series) -> Tuple[int, int]:
     # Format the totals
     totals = {col_name.lstrip("ticket_"): sum_df[col_name] for col_name in sum_df.index}
 
-    # TODO: fix ordering
+    sort_tickets(totals)
+
     totals_str = "<br>".join(
         f"{ticket_name}: {ticket_qty:.0f}" for ticket_name, ticket_qty in totals.items()
     )

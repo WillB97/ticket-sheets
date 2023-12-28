@@ -5,6 +5,8 @@ from typing import Dict, List, NamedTuple, Optional, Tuple
 import pandas as pd
 from flask import Markup
 
+from .utils.internal import sort_tickets
+
 PRESENT_AGES = [
     "BU1",
     *[f"B{i}" for i in range(1, 15)],
@@ -61,7 +63,7 @@ def generate_overall_breakdown(
     ticket_totals = data[ticket_cols].sum(axis="index").to_dict()
     # Remove the ticket_ prefix from the column names
     ticket_totals = {ticket.lstrip("ticket_"): qty for ticket, qty in ticket_totals.items()}
-    ticket_totals = _sort_tickets(ticket_totals)
+    ticket_totals = sort_tickets(ticket_totals)
 
     if "Product price_formatted" in data.columns:
         # Extract the value to a python float
@@ -94,7 +96,7 @@ def generate_extra_stats(
     ticket_avgs = data[ticket_cols].mean(axis="index").to_dict()
     # Remove the ticket_ prefix from the column names
     ticket_avgs = {ticket.lstrip("ticket_"): qty for ticket, qty in ticket_avgs.items()}
-    ticket_avgs = _sort_tickets(ticket_avgs)
+    ticket_avgs = sort_tickets(ticket_avgs)
     avg_makeup = [f"<b>{name[0]}</b>: {qty:.4f}" for name, qty in ticket_avgs.items()]
 
     if "Product price_formatted" in data.columns:
@@ -117,7 +119,7 @@ def generate_extra_stats(
         max_order_tickets = {
             ticket.lstrip("ticket_"): qty for ticket, qty in max_order_ticket_cols.items()
         }
-        max_order_tickets = _sort_tickets(max_order_tickets)
+        max_order_tickets = sort_tickets(max_order_tickets)
         max_makeup = [
             f"<b>{name[0]}</b>: {qty:.0f}" for name, qty in max_order_tickets.items()
         ]
@@ -171,7 +173,7 @@ def generate_event_breakdown(data: pd.DataFrame) -> Dict[Tuple[str, str], EventT
         ticket_totals = {
             ticket.lstrip("ticket_"): qty for ticket, qty in ticket_totals.items()
         }
-        ticket_totals = _sort_tickets(ticket_totals)
+        ticket_totals = sort_tickets(ticket_totals)
 
         if "Product price_formatted" in event_data.columns:
             # Extract the value to a python float
@@ -281,13 +283,3 @@ def get_max_presents(data: pd.DataFrame, col_name: str) -> Tuple[str, int]:
     max_presents = present_counts.iloc[0]
 
     return max_presents["Order ID"], max_presents["present_count"]
-
-
-def _sort_tickets(tickets: Dict[str, int]) -> Dict[str, int]:
-    """Sort the standard tickets."""
-    ticket_order = {"Adult": 1, "Senior": 2, "Child": 3, "Infant": 4}
-
-    ticket_list = list(tickets.items())
-    ticket_list.sort(key=lambda x: ticket_order.get(x[0], 5))
-
-    return dict(ticket_list)
