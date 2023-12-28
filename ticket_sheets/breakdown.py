@@ -65,19 +65,26 @@ def generate_overall_breakdown(
     ticket_totals = {ticket.lstrip("ticket_"): qty for ticket, qty in ticket_totals.items()}
     ticket_totals = sort_tickets(ticket_totals)
 
-    if "Product price_formatted" in data.columns:
+    total_value = 0.0
+    online_value = 0.0
+    walkin_value = 0.0
+    if "Walk-in price" in data.columns:
+        # Extract the value to a python float
+        total_value = data["Walk-in price"].sum(axis="index").item()
+        online_value = data["Product price_formatted"].sum(axis="index").item()
+        walkin_value = total_value - online_value
+    elif "Product price_formatted" in data.columns:
         # Extract the value to a python float
         total_value = data["Product price_formatted"].sum(axis="index").item()
-    else:
-        total_value = 0.0
+        online_value = total_value
 
     return Totals(
         tickets=ticket_totals,
         num_tickets=sum(ticket_totals.values()),
         total_value=total_value,
         num_orders=len(data),
-        online_value=total_value,  # TODO
-        walkin_value=0.0,
+        online_value=online_value,
+        walkin_value=walkin_value,
         extra_stats=generate_extra_stats(data, presents_column),
     )
 
@@ -175,7 +182,10 @@ def generate_event_breakdown(data: pd.DataFrame) -> Dict[Tuple[str, str], EventT
         }
         ticket_totals = sort_tickets(ticket_totals)
 
-        if "Product price_formatted" in event_data.columns:
+        if "Walk-in price" in event_data.columns:
+            # Extract the value to a python float
+            total_value = event_data["Walk-in price"].sum(axis="index").item()
+        elif "Product price_formatted" in event_data.columns:
             # Extract the value to a python float
             total_value = event_data["Product price_formatted"].sum(axis="index").item()
         else:

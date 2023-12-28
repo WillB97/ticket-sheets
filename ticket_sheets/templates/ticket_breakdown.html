@@ -35,6 +35,10 @@
 <div style="text-align: center;">
     <h3>Grand Totals</h3>
     <b>Total Value:</b> £{{ "%.2f"|format(totals.total_value) }}<br>
+    {% if totals.walkin_value %}
+    <b>Online:</b> £{{ "%.2f"|format(totals.online_value) }},
+    <b>Walkin:</b>  £{{ "%.2f"|format(totals.walkin_value) }}<br>
+    {% endif %}
     <b>Total Orders:</b> {{totals.num_orders}}<br>
     <b>Total Tickets:</b> {{totals.num_tickets}}<br>
     <br>
