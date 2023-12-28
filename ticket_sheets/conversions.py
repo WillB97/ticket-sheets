@@ -370,9 +370,9 @@ def label_3(values: pd.Series) -> Tuple[str, int]:
 def _categorise_presents(row: pd.Series, col_name: str) -> Dict[str, int]:
     """Count the number of children and infants."""
     presents: List[str] = row[col_name]
-    # infant presents start with 'BU' or 'GU', child presents start with 'B' or 'G'
+    # Filter to only infant tickets
     infant_presents = list(
-        filter(lambda present: len(present) == 3 and present[1] == "U", presents)
+        filter(lambda present: present in ["BU1", "B1", "GU1", "G1"], presents)
     )
     child_presents = list(filter(lambda present: present not in infant_presents, presents))
 
