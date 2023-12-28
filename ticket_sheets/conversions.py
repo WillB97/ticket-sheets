@@ -46,7 +46,12 @@ def parse_int(value: str, booking: pd.Series) -> int:
 # Extract functions
 # These functions modify the dataframe in place
 def extract_tickets(data: pd.DataFrame, col_name: str) -> None:
-    """Extract the tickets from the "Price categories" field."""
+    """
+    Extract the tickets from the "Price categories" field.
+
+    This function adds a column for each ticket type, with the quantity of that ticket.
+    Generates columns in the format: "ticket_<ticket name>"
+    """
 
     def extract_ticket(row: pd.Series, col_name: str) -> Dict[str, int]:
         """Extract the ticket name and quantity from a ticket string."""
@@ -135,7 +140,11 @@ def extract_present_details(data: pd.DataFrame, col_name: str) -> None:
 
 
 def include_additional_adults(data: pd.DataFrame, col_name: str, ticket_type="Adult") -> None:
-    """Add additional adults to the accompanying adult field, remove them from quantity."""
+    """
+    Add additional adults to the accompanying adult field, remove them from quantity.
+
+    Also uses the "Price categories", "Quantity_formatted" and "Product title" fields.
+    """
     # Skip if we don't have the Price categories field
     if "Price categories" not in data.columns:
         return
@@ -163,25 +172,34 @@ def include_additional_adults(data: pd.DataFrame, col_name: str, ticket_type="Ad
 
 
 def include_additional_seniors(data: pd.DataFrame, col_name: str) -> None:
-    """Add additional seniors to the accompanying senior field, remove them from quantity."""
+    """
+    Add additional seniors to the accompanying senior field, remove them from quantity.
+
+    Also uses the "Price categories", "Quantity_formatted" and "Product title" fields.
+    """
     include_additional_adults(data, col_name, ticket_type="Senior")
 
 
-def include_accompanying(data: pd.DataFrame, col_name: str) -> None:
+def include_accompanying(
+    data: pd.DataFrame,
+    col_name: str,
+    adult_col: str = "Accompanying Adult_formatted",
+    senior_col: str = "Accompanying Senior_formatted",
+) -> None:
     """Add accompanying adult and senior to the price categories field."""
 
     def add_accompanying(row: pd.Series, col_name: str) -> str:
         """Add accompanying adult and senior to the price categories field."""
         ticket_lines = row[col_name].splitlines()
 
-        if "Accompanying Adult_formatted" in row.index:
-            extra_adults = row["Accompanying Adult_formatted"]
+        if adult_col in row.index:
+            extra_adults = row[adult_col]
             if extra_adults != 0:
                 # Update col_name with new price categories with extra adults added
                 _update_tickets(ticket_lines, "Adult", extra_adults)
 
-        if "Accompanying Senior_formatted" in row.index:
-            extra_seniors = row["Accompanying Senior_formatted"]
+        if senior_col in row.index:
+            extra_seniors = row[senior_col]
             if extra_seniors != 0:
                 # Update col_name with new price categories with extra seniors added
                 _update_tickets(ticket_lines, "Senior", extra_seniors)
@@ -191,15 +209,17 @@ def include_accompanying(data: pd.DataFrame, col_name: str) -> None:
     data[col_name] = data.apply(add_accompanying, axis="columns", args=(col_name,))
 
 
-def split_infant_presents(data: pd.DataFrame, col_name: str) -> None:
+def split_infant_presents(
+    data: pd.DataFrame, col_name: str, present_col: str = "Present Type_formatted"
+) -> None:
     """Split infant present into separate infant ticket in price categories."""
 
-    def split_infant_present(row: pd.Series, col_name: str) -> str:
+    def split_infant_present(row: pd.Series, category_col: str, present_col: str) -> str:
         """Split infant present into separate infant ticket in price categories."""
         # Use present details to determine the split of child/infant tickets
-        _present_counts = _categorise_presents(row, "Present Type_formatted")
+        _present_counts = _categorise_presents(row, present_col)
 
-        ticket_lines = row[col_name].splitlines()
+        ticket_lines = row[category_col].splitlines()
         # Update col_name with new price categories containing child & infant tickets
         _update_tickets(ticket_lines, "Child", _present_counts["child_count"])
         if _present_counts["infant_count"] != 0:
@@ -207,11 +227,13 @@ def split_infant_presents(data: pd.DataFrame, col_name: str) -> None:
 
         return "\n".join(ticket_lines)
 
-    if "Present Type_formatted" not in data.columns:
+    if present_col not in data.columns:
         # Skip if we don't have the Present Type field
         return
 
-    data[col_name] = data.apply(split_infant_present, axis="columns", args=(col_name,))
+    data[col_name] = data.apply(
+        split_infant_present, axis="columns", args=(col_name, present_col)
+    )
 
 
 # Format functions
