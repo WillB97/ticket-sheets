@@ -60,3 +60,12 @@ def heading_date(value: datetime, booking: Optional[pd.Series] = None) -> str:
 def insert_html_newlines(value: str, booking: Optional[pd.Series] = None) -> str:
     """Insert HTML line breaks into the value."""
     return Markup(value.replace("\n", "<br>"))
+
+
+def format_walkin_price(value, booking: pd.Series) -> str:
+    """Format the walk-in price."""
+    formatted_price = format_price(value)
+    if "Product price_formatted" in booking.index and booking["Product price_formatted"] == 0:
+        # Wrap the price in brackets if the price is walk-in
+        formatted_price = f"({formatted_price})"
+    return formatted_price

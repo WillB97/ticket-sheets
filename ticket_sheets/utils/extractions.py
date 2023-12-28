@@ -200,3 +200,52 @@ def split_infant_presents(
     data[col_name] = data.apply(
         split_infant_present, axis="columns", args=(col_name, present_col)
     )
+
+
+def calculate_walkin_price(
+    data: pd.DataFrame, col_name: str, ticket_prices: Dict[str, Dict[str, float]]
+) -> None:
+    """
+    Calculate the price for walk-in tickets.
+
+    Walk-in bookings have a price of 0,
+    so we need to calculate the price from the ticket types.
+    Uses the "ticket_*" columns and "Product title" field.
+
+    Generates new columns:
+    - "Walk-in price": float
+    """
+    ticket_cols = [col for col in data.columns if col.startswith("ticket_")]
+
+    price_options = list(ticket_prices.items())
+    # Use longest substring matching for the ticket prices
+    price_options.sort(key=lambda x: len(x[0]), reverse=True)
+
+    def calculate_price(row: pd.Series, col_name: str) -> float:
+        """Calculate the price for a row, based on the Product title."""
+        # Use the product title to determine the ticket prices
+        if row[col_name] != 0:
+            # Skip if the price is not 0
+            return row[col_name]
+
+        product_title = row["Product title"]
+        # Use longest substring matching for the ticket prices, case insensitive
+        for ticket_name, ticket_prices in price_options:
+            if ticket_name.lower() in product_title.lower():
+                break
+
+        # ticket_prices is a dict of ticket name to price
+        tickets = row[ticket_cols].to_dict()
+        # Remove the ticket_ prefix from the column names
+        tickets = {ticket.lstrip("ticket_"): qty for ticket, qty in tickets.items()}
+
+        # Calculate the price
+        price = 0.0
+        for ticket_name, ticket_qty in tickets.items():
+            price += ticket_qty * ticket_prices.get(ticket_name, 0.0)
+
+        return price
+
+    data["Walk-in price"] = data.apply(
+        calculate_price, axis="columns", args=(col_name,)
+    ).astype("float")

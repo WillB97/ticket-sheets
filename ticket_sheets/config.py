@@ -207,12 +207,14 @@ SANTA_CONFIG = DataConfig(
         "Accompanying Senior": FieldConfig(
             conversion="parse_int", extractions=["include_additional_seniors"]
         ),
-        # Must occur after Accompanying Adult and Accompanying Senior
-        "Product price": FieldConfig(conversion="tidy_price"),  # TODO: account for walkin
         "Present Type": FieldConfig(extractions=["extract_present_details"]),
         # Needed for breakdown, must occur after Accompanying Adult and Accompanying Senior
         "Price categories": FieldConfig(
             extractions=["include_accompanying", "split_infant_presents", "extract_tickets"]
+        ),
+        # Must occur after Accompanying Adult, Senior and Price categories
+        "Product price": FieldConfig(
+            conversion="tidy_price", extractions=["calculate_walkin_price"]
         ),
     },
     ticket_config=TableConfig(
@@ -235,8 +237,8 @@ SANTA_CONFIG = DataConfig(
             ColumnConfig("Grotto<br>passes", "Quantity_formatted", total_method="sum"),
             ColumnConfig(
                 "Paid",
-                "Product price_formatted",
-                formatter="format_price",
+                "Walk-in price",
+                formatter="format_walkin_price",
                 total_method="price_sum",
             ),
             ColumnConfig(
@@ -271,7 +273,7 @@ SANTA_CONFIG = DataConfig(
             ColumnConfig("Adults", "Accompanying Adult_formatted"),
             ColumnConfig("Seniors", "Accompanying Senior_formatted"),
             ColumnConfig("Grotto<br>passes", "Quantity_formatted"),
-            ColumnConfig("Paid", "Product price_formatted", formatter="format_price"),
+            ColumnConfig("Paid", "Walk-in price", formatter="format_walkin_price"),
             ColumnConfig(
                 "Presents", "Present Type_formatted", align="left", formatter="comma_sep"
             ),

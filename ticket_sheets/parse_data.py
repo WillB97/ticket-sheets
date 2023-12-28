@@ -5,7 +5,7 @@ Generates a table of the bookings to be output and the summary statistics.
 """
 
 from datetime import datetime
-from typing import Callable, Dict, List, NamedTuple
+from typing import Callable, Dict, List, NamedTuple, Optional
 
 import pandas as pd
 from flask import Markup
@@ -88,13 +88,20 @@ def conversion_wrapper(
     return conv_func(row[col], row)
 
 
-def parse_bookings(data: pd.DataFrame, config: Dict[str, FieldConfig]) -> pd.DataFrame:
+def parse_bookings(
+    data: pd.DataFrame,
+    config: Dict[str, FieldConfig],
+    ticket_prices: Optional[Dict[str, Dict[str, float]]] = None,
+) -> pd.DataFrame:
     """
     Parse the bookings from the data.
 
     This function extracts processable values from the data and adds them to the
     dataframe using the configuration provided.
     """
+    if ticket_prices is None:
+        ticket_prices = {}
+
     # Iterate over each column in the config and apply conversion if it exists
     for col_name, col_config in config.items():
         if col_name in data.columns:
@@ -117,7 +124,11 @@ def parse_bookings(data: pd.DataFrame, config: Dict[str, FieldConfig]) -> pd.Dat
                 except AttributeError:
                     raise ValueError(f"Invalid extraction name {extract_name}")
                 # Extraction functions modify the dataframe in place
-                extract_func(data, col_name)
+                if "ticket_prices" in extract_func.__annotations__.keys():
+                    # A bodge to pass the ticket prices to the extract function
+                    extract_func(data, col_name, ticket_prices=ticket_prices)
+                else:
+                    extract_func(data, col_name)
 
     return data
 

@@ -157,7 +157,9 @@ def ticket_table():
     filtered_data = apply_filters(data, config)
     table_configs: DataConfig = config["data_config"]
 
-    parsed_bookings = parse_bookings(filtered_data, table_configs.input_format)
+    parsed_bookings = parse_bookings(
+        filtered_data, table_configs.input_format, config["ticket prices"]
+    )
     # Also include daily totals
     rendered_bookings = format_for_table(
         parsed_bookings, table_configs.ticket_config, daily_totals=True
@@ -187,7 +189,9 @@ def alphabetical_orders():
     filtered_data = apply_filters(data, config)
     table_configs: DataConfig = config["data_config"]
 
-    parsed_bookings = parse_bookings(filtered_data, table_configs.input_format)
+    parsed_bookings = parse_bookings(
+        filtered_data, table_configs.input_format, config["ticket prices"]
+    )
     rendered_bookings = format_for_table(parsed_bookings, table_configs.alpha_config)
 
     header = [Markup(column.title) for column in table_configs.alpha_config.columns]
@@ -215,7 +219,9 @@ def ticket_breakdown():
     filtered_data = apply_filters(data, config)
     table_configs: DataConfig = config["data_config"]
 
-    parsed_bookings = parse_bookings(filtered_data, table_configs.input_format)
+    parsed_bookings = parse_bookings(
+        filtered_data, table_configs.input_format, config["ticket prices"]
+    )
 
     # Calculate grand totals and extra statistics
     grand_totals = generate_overall_breakdown(
