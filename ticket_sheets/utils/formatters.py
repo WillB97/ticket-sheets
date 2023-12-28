@@ -5,42 +5,43 @@ These functions take the value of a field and produce a formatted string.
 """
 
 from datetime import datetime
-from typing import List
+from typing import List, Optional
 
+import pandas as pd
 from flask import Markup
 
 
-def title_case(value: str) -> str:
+def title_case(value: str, booking: Optional[pd.Series] = None) -> str:
     """Convert the value to title case."""
     return value.title()
 
 
-def comma_sep(value: List[str]) -> str:
+def comma_sep(value: List[str], booking: Optional[pd.Series] = None) -> str:
     """Convert the value to a comma separated string."""
     return ", ".join(value)
 
 
-def train_time(value: datetime) -> str:
+def train_time(value: datetime, booking: Optional[pd.Series] = None) -> str:
     """Extract the time from the datetime."""
     return value.strftime("%H:%M")
 
 
-def train_date(value: datetime) -> str:
+def train_date(value: datetime, booking: Optional[pd.Series] = None) -> str:
     """Extract the date from the datetime."""
     return value.strftime("%d/%m")
 
 
-def format_price(value: float) -> str:
+def format_price(value: float, booking: Optional[pd.Series] = None) -> str:
     """Format the value as a price."""
     return f"{value:.2f}"
 
 
-def simple_date(value: datetime) -> str:
+def simple_date(value: datetime, booking: Optional[pd.Series] = None) -> str:
     """Shorten date to fit in the table."""
     return value.strftime("%a %d/%m")
 
 
-def heading_date(value: datetime) -> str:
+def heading_date(value: datetime, booking: Optional[pd.Series] = None) -> str:
     """
     Format for the date headings.
 
@@ -56,6 +57,6 @@ def heading_date(value: datetime) -> str:
     return f"{value:%A %B %-d}{date_suffix(value.day)}".upper()
 
 
-def insert_html_newlines(value: str) -> str:
+def insert_html_newlines(value: str, booking: Optional[pd.Series] = None) -> str:
     """Insert HTML line breaks into the value."""
     return Markup(value.replace("\n", "<br>"))

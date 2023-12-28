@@ -107,6 +107,10 @@ def parse_bookings(data: pd.DataFrame, config: Dict[str, FieldConfig]) -> pd.Dat
                 data.loc[:, f"{col_name}_formatted"] = data.apply(
                     conversion_wrapper, args=(conv_func, col_name), axis="columns"
                 )
+
+                # Use the formatted column for further processing
+                col_name = f"{col_name}_formatted"
+
             for extract_name in col_config.extractions:
                 try:
                     extract_func = getattr(extractions, extract_name)
@@ -205,7 +209,7 @@ def format_row(row: pd.Series, config: TableConfig) -> Dict[str, str]:
                     format_func = getattr(formatters, col_config.formatter)
                 except AttributeError:
                     raise ValueError(f"Invalid format name {col_config.formatter}")
-                value = format_func(raw_value)
+                value = format_func(raw_value, row)
             else:
                 value = raw_value
             output_row[col_title] = value

@@ -128,9 +128,7 @@ def include_additional_adults(data: pd.DataFrame, col_name: str, ticket_type="Ad
 
     # Add the selected ticket type to the col_name field
     if ticket_col in input_data.columns:
-        data[f"{col_name}_formatted"] = data[f"{col_name}_formatted"].add(
-            input_data[ticket_col], fill_value=0
-        )
+        data[col_name] = data[col_name].add(input_data[ticket_col], fill_value=0)
 
         # Remove the selected ticket type from the quantity field
         if "Quantity_formatted" in data.columns:

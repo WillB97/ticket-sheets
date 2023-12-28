@@ -174,7 +174,7 @@ DEFAULT_CONFIG = DataConfig(
             ColumnConfig(
                 "Last name", "Customer last name", align="left", formatter="title_case"
             ),
-            ColumnConfig("Qty.", "Quantity"),
+            ColumnConfig("Qty.", "Quantity_formatted"),
             ColumnConfig("Paid", "Product price_formatted", formatter="format_price"),
             ColumnConfig(
                 "Price categories",
@@ -268,9 +268,9 @@ SANTA_CONFIG = DataConfig(
             ColumnConfig(
                 "Last name", "Customer last name", align="left", formatter="title_case"
             ),
-            ColumnConfig("Adults", "Accompanying Adult"),
-            ColumnConfig("Seniors", "Accompanying Senior"),
-            ColumnConfig("Grotto<br>passes", "Quantity"),
+            ColumnConfig("Adults", "Accompanying Adult_formatted"),
+            ColumnConfig("Seniors", "Accompanying Senior_formatted"),
+            ColumnConfig("Grotto<br>passes", "Quantity_formatted"),
             ColumnConfig("Paid", "Product price_formatted", formatter="format_price"),
             ColumnConfig(
                 "Presents", "Present Type_formatted", align="left", formatter="comma_sep"
