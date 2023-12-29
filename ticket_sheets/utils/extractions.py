@@ -5,6 +5,7 @@ Generate new columns from existing data.
 These functions modify the dataframe in place.
 """
 
+import re
 from collections import defaultdict
 from typing import Dict, List
 
@@ -221,6 +222,11 @@ def calculate_walkin_price(
     # Use longest substring matching for the ticket prices
     price_options.sort(key=lambda x: len(x[0]), reverse=True)
 
+    # Compile the regexes to make matching faster
+    price_options = [
+        (re.compile(name, re.IGNORECASE), prices) for name, prices in price_options
+    ]
+
     def calculate_price(row: pd.Series, col_name: str) -> float:
         """Calculate the price for a row, based on the Product title."""
         # Use the product title to determine the ticket prices
@@ -228,10 +234,11 @@ def calculate_walkin_price(
             # Skip if the price is not 0
             return row[col_name]
 
-        product_title = row["Product title"]
+        # Use the formatted product title to determine the ticket prices
+        product_title = f"{row['Start date_formatted']:%d/%m/%y} {row['Product title']}"
         # Use longest substring matching for the ticket prices, case insensitive
-        for ticket_name, ticket_prices in price_options:
-            if ticket_name.lower() in product_title.lower():
+        for ticket_filter, ticket_prices in price_options:
+            if re.search(ticket_filter, product_title):
                 break
 
         # ticket_prices is a dict of ticket name to price
