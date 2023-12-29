@@ -49,9 +49,9 @@
         {% endfor %}
     </table>
     <br>
-    {# <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#priceModal" id='priceModalOpen'>
+    <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#priceModal" id='priceModalOpen'>
         Set prices
-    </button> #}
+    </button>
 </div>
 
 {% if presents %}
@@ -123,7 +123,7 @@
 </div>
 {% endif %}
 
-{# <div class="modal" id="priceModal">
+<div class="modal" id="priceModal">
     <div class="modal-dialog">
         <div class="modal-content">
 
@@ -135,25 +135,20 @@
             <div class="modal-body">
                 <label for='eventSelect'>Event:</label>
                 <select id='eventSelect'>
-                    {% for date, date_group in breakdown.items() %}
-                        {% for event, event_bookings in date_group.items() %}
-                        <option>{{date}} {{event}}</option>
+                        {% for event_substrinng in config.price_options %}
+                        <option>{{ event_substrinng }}</option>
                         {% endfor %}
-                    {% endfor %}
                 </select>
+                <div>
+                <input type='text' id='newEventName' placeholder='Update filter'>
+                <button type='button' class='btn btn-danger' id='deletePrice'>Delete</button>
+                <button type='button' class='btn btn-secondary' id='newPrice'>New</button>
+                </div>
                 <hr>
-                <p>Rows with blank names are ignored.</p>
-                <h5>Event Prices</h5>
+                <h5>Prices</h5>
                 <table id='priceTable' class="table table-bordered table-sm w-auto mx-auto"></table>
                 <div class='text-center'>
                     <button type='button' class='btn btn-success btn-sm mx-auto' onclick="addRow('#priceTable');">Add Row</button>
-                </div>
-
-                <br>
-                <h5>Standard Prices</h5>
-                <table id='standardPriceTable' class="table table-bordered table-sm w-auto mx-auto"></table>
-                <div class='text-center'>
-                    <button type='button' class='btn btn-success btn-sm mx-auto' onclick="addRow('#standardPriceTable');">Add Row</button>
                 </div>
 
                 <hr>
@@ -167,7 +162,7 @@
 
         </div>
     </div>
-</div> #}
+</div>
 
 <script>
     function addRow(tableName) {
@@ -205,14 +200,18 @@
         $.getJSON(
             '/prices',
             {"event": $('#eventSelect').val()},
-            loadPriceTable
+            function (result) {
+                loadPriceTable(result);
+                // set new event name to current event
+                $('#newEventName').val($('#eventSelect').val());
+            }
         );
     }
     function loadPriceTable(result) {
         // populate price tables with received data
         $('#priceTable').empty();  // delete all rows in table
 
-        for (let [ticket, value] of Object.entries(result['event'])) {
+        for (let [ticket, value] of Object.entries(result)) {
             $('#priceTable').append(
                 $('<tr>').append(
                     $('<td>').append(
@@ -234,38 +233,27 @@
                 )
             );
         }
-
-        $('#standardPriceTable').empty();  // delete all rows in table
-        for (let [ticket, value] of Object.entries(result['standard'])) {
-            $('#standardPriceTable').append(
-                $('<tr>').append(
-                    $('<td>').append(
-                        $('<input>').attr({
-                            'size': 8,
-                            'class': 'form-control',
-                            'id': 'ticket'
-                        }).val(ticket)
-                    ),
-                    $('<td>').append(
-                        $('<input>').attr({
-                            'size': 5,
-                            'type': 'number',
-                            'step': 1,
-                            'class': 'form-control',
-                            'id': 'price'
-                        }).val(value.toFixed(2))
-                    )
-                )
-            );
-        }
+    }
+    function fetchEvents(callback) {
+        // ajax fetch events
+        $.getJSON(
+            '/prices',
+            {"list": true},
+            function (result) {
+                $('#eventSelect').empty();
+                for (event of result) {
+                    $('#eventSelect').append($('<option>').text(event));
+                }
+                if (callback) {
+                    callback();
+                }
+            }
+        );
     }
 
     $('#savePrices').on('click', function() {
         // ajax post ticket prices, standard prices
-        prices = {
-            'event': {},
-            'standard': {}
-        };
+        prices = {};
 
         for (row of $('#priceTable tr').toArray()) {
             elements = $(row).children();
@@ -273,25 +261,53 @@
             price = $(elements[1]).find('input').val();
 
             if (name != '' && price != '') {
-                prices['event'][name] = parseFloat(price);
+                prices[name] = parseFloat(price);
             }
         }
 
-        for (row of $('#standardPriceTable tr').toArray()) {
-            elements = $(row).children();
-            name = $(elements[0]).find('input').val();
-            price = $(elements[1]).find('input').val();
-
-            if (name != '' && price != '') {
-                prices['standard'][name] = parseFloat(price);
-            }
-        }
-
+        let new_event = $('#newEventName').val();
         $.post(
             '/prices',
             {
                 'event': $('#eventSelect').val(),
+                'new_filter': new_event,
                 'prices': JSON.stringify(prices)
+            },
+            function (result) {
+                fetchEvents(
+                    function() {
+                        $('#eventSelect').val(new_event).change();
+                    }
+                );
+            }
+        );
+    });
+    $('#newPrice').on('click', function() {
+        let new_event = $('#newEventName').val();
+        $.post(
+            '/prices',
+            {
+                'new_filter': new_event,
+                'new': true
+            },
+            function (result) {
+                fetchEvents(
+                    function() {
+                        $('#eventSelect').val(new_event).change();
+                    }
+                );
+            }
+        );
+    });
+    $('#deletePrice').on('click', function() {
+        $.post(
+            '/prices',
+            {
+                'event': $('#eventSelect').val(),
+                'delete': true
+            },
+            function (result) {
+                fetchEvents(fetchPrices);
             }
         );
     });

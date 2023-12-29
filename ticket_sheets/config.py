@@ -32,6 +32,16 @@ def refresh_config():
     _load_config()
 
 
+def update_prices(filter: str, prices: Optional[Dict[str, float]]):
+    """Update the ticket prices for the given filter."""
+    if prices is None:
+        # Remove the filter if the prices are None
+        _ = _config["ticket prices"].pop(filter, None)
+    else:
+        _config["ticket prices"][filter] = prices
+    _save_config()
+
+
 def _load_config():
     """
     Load the configuration from the config file.

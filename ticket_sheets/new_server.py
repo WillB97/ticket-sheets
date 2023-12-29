@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """Ticket-sheets flask server."""
 
+import json
 from datetime import datetime
 
 import pandas as pd
@@ -16,7 +17,7 @@ from .breakdown import (
     summarise_presents_by_age,
     summarise_presents_by_train,
 )
-from .config import DataConfig, get_config, refresh_config, update_config
+from .config import DataConfig, get_config, refresh_config, update_config, update_prices
 from .parse_data import apply_filters, format_for_table, get_dates, parse_bookings, parse_csv
 
 app = Flask(__name__)
@@ -279,6 +280,44 @@ def tally_index():
     return render_template("tally_index.html", dates=dates, active="tally", **global_vars())
 
 
+# AJAX methods
+@app.route("/prices", methods=["GET"])
+def get_event_price():
+    """Return the ticket prices for the given event substring."""
+    event = request.args.get("event")
+
+    if request.args.get("list") == "true":
+        return sorted(config["ticket prices"].keys(), key=len, reverse=True)
+
+    return config["ticket prices"].get(event, {})
+
+
+@app.route("/prices", methods=["POST"])
+def set_event_price():
+    """Set the ticket prices for the given event substring."""
+    event = request.form.get("event", "")
+    print(request.form)
+
+    if request.form.get("new") == "true":
+        new_filter = request.form.get("new_filter")
+        update_prices(new_filter, {})
+    elif request.form.get("delete") == "true":
+        # Delete price filter
+        update_prices(event, None)
+    else:
+        prices = json.loads(request.form["prices"])
+
+        new_filter = request.form.get("new_filter")
+        if new_filter and new_filter != event:
+            config["ticket prices"][new_filter] = config["ticket prices"].pop(event)
+            event = new_filter
+
+        # This will save the renamed event if it was changed
+        update_prices(event, prices)
+
+    return {"success": True}
+
+
 def global_vars():
     """Provide global variables to the template."""
     return {
@@ -289,6 +328,7 @@ def global_vars():
             "filter": config["product filter"],
             "hide_old": config["hide old orders"],
             "old_date": config["old order date"],
+            "price_options": sorted(config["ticket prices"].keys(), key=len, reverse=True),
         },
     }
 
