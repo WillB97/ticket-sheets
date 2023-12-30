@@ -1,11 +1,22 @@
 #!/usr/bin/env python3
 """Ticket-sheets flask server."""
 
+import csv
 import json
 from datetime import datetime
+from io import StringIO
 
 import pandas as pd
-from flask import Flask, Markup, redirect, render_template, request, session, url_for
+from flask import (
+    Flask,
+    Markup,
+    make_response,
+    redirect,
+    render_template,
+    request,
+    session,
+    url_for,
+)
 from werkzeug.exceptions import InternalServerError
 
 from flask_session import Session
@@ -212,6 +223,48 @@ def alphabetical_orders():
         active="alpha",
         **global_vars(),
     )
+
+
+@app.route("/csv-breakdown")
+def csv_breakdown():
+    """Render a summary of the ticket data as CSV."""
+    data = session["csv_data"].copy()
+    filtered_data = apply_filters(data, config)
+    table_configs: DataConfig = config["data_config"]
+
+    parsed_bookings = parse_bookings(
+        filtered_data, table_configs.input_format, config["ticket prices"]
+    )
+
+    # (date, event) -> (tickets, num_tickets, total value, num orders)
+    event_totals = generate_event_breakdown(parsed_bookings)
+
+    # generate unique list of ticket types
+    ticket_names = set(ticket for event in event_totals.values() for ticket in event[0].keys())
+
+    csv_file = StringIO()
+    csv_obj = csv.DictWriter(
+        csv_file,
+        fieldnames=["Date", "Event", "Tickets", "Orders", "Total Value", *ticket_names],
+        restval=0,
+    )
+    csv_obj.writeheader()
+
+    for (date, event), (tickets, num_tickets, total_value, num_orders) in event_totals.items():
+        row = {
+            "Date": date,
+            "Event": event,
+            "Tickets": num_tickets,
+            "Orders": num_orders,
+            "Total Value": total_value,
+        }
+        row.update(tickets)
+        csv_obj.writerow(row)
+
+    output = make_response(csv_file.getvalue())
+    output.headers["Content-Disposition"] = "attachment; filename=event_breakdown_export.csv"
+    output.headers["Content-type"] = "text/csv"
+    return output
 
 
 @app.route("/breakdown")

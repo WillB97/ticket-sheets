@@ -32,6 +32,9 @@
         </div>
     {% endfor %}
 </div>
+<div class="mb-3" style="text-align: center;">
+    <a href="/csv-breakdown" class="btn btn-primary">Export CSV</a>
+</div>
 <div style="text-align: center;">
     <h3>Grand Totals</h3>
     <b>Total Value:</b> £{{ "%.2f"|format(totals.total_value) }}<br>
