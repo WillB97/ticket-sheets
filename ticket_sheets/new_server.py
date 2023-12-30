@@ -382,8 +382,6 @@ def tally_sheet(date):
 
     return render_template(
         "tally_sheet.html",
-        csv_name=session.get("csv_name"),
-        csv_uploaded=session.get("csv_uploaded"),
         train_times=train_times,
         tally_data=tally_data,
         date=tally_date.strftime("%a %d %b"),
@@ -395,6 +393,7 @@ def tally_sheet(date):
         with_needs=with_needs.to_dict(),
         max_needs=max_needs,
         active="tally",
+        **global_vars(),
     )
 
 
