@@ -60,7 +60,7 @@ def _load_config():
     _config["old order date"] = _config.get("old order date", "2021-01-01")
 
     # TODO load data config
-    _config["data_config"] = DEFAULT_CONFIG
+    _config["data_config"] = DEFAULT_CONFIGS["santa"]
 
     if _config.get("secret_key") is None:
         _config["secret_key"] = urandom(24).hex()
@@ -121,192 +121,196 @@ class DataConfig(NamedTuple):
     presents_column: Optional[str] = None
 
 
-DEFAULT_CONFIG = DataConfig(
-    input_format={
-        # Start date is automatically converted to a datetime
-        # "Start date": FieldConfig(conversion="parse_date"),
-        "Booking ID": FieldConfig(conversion="parse_int"),
-        "Order ID": FieldConfig(conversion="parse_int"),
-        "Product title": FieldConfig(conversion="simplify_product"),
-        "Quantity": FieldConfig(conversion="parse_int"),
-        "Product price": FieldConfig(conversion="tidy_price"),
-        # Needed for breakdown
-        "Price categories": FieldConfig(extractions=["extract_tickets"]),
-    },
-    ticket_config=TableConfig(
-        columns=[
-            ColumnConfig("Order", "Order ID", total_method="label_3"),
-            ColumnConfig("Booking", "Booking ID"),
-            ColumnConfig("Train", "Start date_formatted", formatter="train_time"),
-            ColumnConfig(
-                "First name",
-                "Customer first name",
-                align="right",
-                formatter="title_case",
-                total_method="order_count_2",
-            ),
-            ColumnConfig(
-                "Last name", "Customer last name", align="left", formatter="title_case"
-            ),
-            ColumnConfig("Qty.", "Quantity_formatted", total_method="sum"),
-            ColumnConfig("Issued", None),
-            ColumnConfig("Infants", None),
-            ColumnConfig(
-                "Paid",
-                "Product price_formatted",
-                formatter="format_price",
-                total_method="price_sum",
-            ),
-            ColumnConfig(
-                "Price categories",
-                "Price categories",
-                align="left",
-                formatter="insert_html_newlines",
-                total_method="category_sum",
-            ),
-            ColumnConfig("Notes", "Special Needs"),
-        ],
-        sorts=[
-            SortConfig("Booking ID_formatted"),
-            SortConfig("Order ID_formatted"),
-            SortConfig("Start date_formatted"),
-        ],
-        group_by_date=True,
-        demark_train=False,
-    ),
-    alpha_config=TableConfig(
-        columns=[
-            ColumnConfig("Order", "Order ID"),
-            ColumnConfig("Booking", "Booking ID"),
-            ColumnConfig("Date", "Start date_formatted", formatter="train_date"),
-            ColumnConfig("Train", "Start date_formatted", formatter="train_time"),
-            ColumnConfig(
-                "First name", "Customer first name", align="right", formatter="title_case"
-            ),
-            ColumnConfig(
-                "Last name", "Customer last name", align="left", formatter="title_case"
-            ),
-            ColumnConfig("Qty.", "Quantity_formatted"),
-            ColumnConfig("Paid", "Product price_formatted", formatter="format_price"),
-            ColumnConfig(
-                "Price categories",
-                "Price categories",
-                align="left",
-                formatter="insert_html_newlines",
-            ),
-            ColumnConfig("Notes", "Special Needs"),
-        ],
-        sorts=[SortConfig("Customer first name"), SortConfig("Customer last name")],
-        group_by_date=False,
-        demark_train=False,
-    ),
-    train_limits={},
-)
-
-
-SANTA_CONFIG = DataConfig(
-    input_format={
-        # Start date is automatically converted to a datetime
-        # "Start date": FieldConfig(conversion="parse_date"),
-        "Booking ID": FieldConfig(conversion="parse_int"),
-        "Order ID": FieldConfig(conversion="parse_int"),
-        "Product title": FieldConfig(conversion="simplify_product"),
-        "Quantity": FieldConfig(conversion="parse_int"),
-        # Must occur after Quantity
-        "Accompanying Adult": FieldConfig(
-            conversion="parse_int", extractions=["include_additional_adults"]
+DEFAULT_CONFIGS = {
+    "general": DataConfig(
+        input_format={
+            # Start date is automatically converted to a datetime
+            # "Start date": FieldConfig(conversion="parse_date"),
+            "Booking ID": FieldConfig(conversion="parse_int"),
+            "Order ID": FieldConfig(conversion="parse_int"),
+            "Product title": FieldConfig(conversion="simplify_product"),
+            "Quantity": FieldConfig(conversion="parse_int"),
+            "Product price": FieldConfig(conversion="tidy_price"),
+            # Needed for breakdown
+            "Price categories": FieldConfig(extractions=["extract_tickets"]),
+        },
+        ticket_config=TableConfig(
+            columns=[
+                ColumnConfig("Order", "Order ID", total_method="label_3"),
+                ColumnConfig("Booking", "Booking ID"),
+                ColumnConfig("Train", "Start date_formatted", formatter="train_time"),
+                ColumnConfig(
+                    "First name",
+                    "Customer first name",
+                    align="right",
+                    formatter="title_case",
+                    total_method="order_count_2",
+                ),
+                ColumnConfig(
+                    "Last name", "Customer last name", align="left", formatter="title_case"
+                ),
+                ColumnConfig("Qty.", "Quantity_formatted", total_method="sum"),
+                ColumnConfig("Issued", None),
+                ColumnConfig("Infants", None),
+                ColumnConfig(
+                    "Paid",
+                    "Product price_formatted",
+                    formatter="format_price",
+                    total_method="price_sum",
+                ),
+                ColumnConfig(
+                    "Price categories",
+                    "Price categories",
+                    align="left",
+                    formatter="insert_html_newlines",
+                    total_method="category_sum",
+                ),
+                ColumnConfig("Notes", "Special Needs"),
+            ],
+            sorts=[
+                SortConfig("Booking ID_formatted"),
+                SortConfig("Order ID_formatted"),
+                SortConfig("Start date_formatted"),
+            ],
+            group_by_date=True,
+            demark_train=False,
         ),
-        "Accompanying Senior": FieldConfig(
-            conversion="parse_int", extractions=["include_additional_seniors"]
+        alpha_config=TableConfig(
+            columns=[
+                ColumnConfig("Order", "Order ID"),
+                ColumnConfig("Booking", "Booking ID"),
+                ColumnConfig("Date", "Start date_formatted", formatter="train_date"),
+                ColumnConfig("Train", "Start date_formatted", formatter="train_time"),
+                ColumnConfig(
+                    "First name", "Customer first name", align="right", formatter="title_case"
+                ),
+                ColumnConfig(
+                    "Last name", "Customer last name", align="left", formatter="title_case"
+                ),
+                ColumnConfig("Qty.", "Quantity_formatted"),
+                ColumnConfig("Paid", "Product price_formatted", formatter="format_price"),
+                ColumnConfig(
+                    "Price categories",
+                    "Price categories",
+                    align="left",
+                    formatter="insert_html_newlines",
+                ),
+                ColumnConfig("Notes", "Special Needs"),
+            ],
+            sorts=[SortConfig("Customer first name"), SortConfig("Customer last name")],
+            group_by_date=False,
+            demark_train=False,
         ),
-        "Present Type": FieldConfig(extractions=["extract_present_details"]),
-        # Needed for breakdown, must occur after Accompanying Adult and Accompanying Senior
-        "Price categories": FieldConfig(
-            extractions=["include_accompanying", "split_infant_presents", "extract_tickets"]
-        ),
-        # Must occur after Accompanying Adult, Senior and Price categories
-        "Product price": FieldConfig(
-            conversion="tidy_price", extractions=["calculate_walkin_price"]
-        ),
-    },
-    ticket_config=TableConfig(
-        columns=[
-            ColumnConfig("Order", "Order ID", total_method="label_3"),
-            ColumnConfig("Booking", "Booking ID"),
-            ColumnConfig("Train", "Start date_formatted", formatter="train_time"),
-            ColumnConfig(
-                "First name",
-                "Customer first name",
-                align="right",
-                formatter="title_case",
-                total_method="order_count_2",
-            ),
-            ColumnConfig(
-                "Last name", "Customer last name", align="left", formatter="title_case"
-            ),
-            ColumnConfig("Adults", "Accompanying Adult_formatted", total_method="sum"),
-            ColumnConfig("Seniors", "Accompanying Senior_formatted", total_method="sum"),
-            ColumnConfig("Grotto<br>passes", "Quantity_formatted", total_method="sum"),
-            ColumnConfig(
-                "Paid",
-                "Walk-in price",
-                formatter="format_walkin_price",
-                total_method="price_sum",
-            ),
-            ColumnConfig(
-                "Presents",
-                "Present Type_formatted",
-                align="left",
-                formatter="comma_sep",
-                total_method="present_sum",
-            ),
-            ColumnConfig("Notes", "Special Needs"),
-        ],
-        sorts=[
-            SortConfig("Booking ID_formatted"),
-            SortConfig("Order ID_formatted"),
-            SortConfig("Start date_formatted"),
-        ],
-        group_by_date=True,
-        demark_train=True,
+        train_limits={},
     ),
-    alpha_config=TableConfig(
-        columns=[
-            ColumnConfig("Order", "Order ID"),
-            ColumnConfig("Booking", "Booking ID"),
-            ColumnConfig("Date", "Start date_formatted", formatter="train_date"),
-            ColumnConfig("Train", "Start date_formatted", formatter="train_time"),
-            ColumnConfig(
-                "First name", "Customer first name", align="right", formatter="title_case"
+    "santa": DataConfig(
+        input_format={
+            # Start date is automatically converted to a datetime
+            # "Start date": FieldConfig(conversion="parse_date"),
+            "Booking ID": FieldConfig(conversion="parse_int"),
+            "Order ID": FieldConfig(conversion="parse_int"),
+            "Product title": FieldConfig(conversion="simplify_product"),
+            "Quantity": FieldConfig(conversion="parse_int"),
+            # Must occur after Quantity
+            "Accompanying Adult": FieldConfig(
+                conversion="parse_int", extractions=["include_additional_adults"]
             ),
-            ColumnConfig(
-                "Last name", "Customer last name", align="left", formatter="title_case"
+            "Accompanying Senior": FieldConfig(
+                conversion="parse_int", extractions=["include_additional_seniors"]
             ),
-            ColumnConfig("Adults", "Accompanying Adult_formatted"),
-            ColumnConfig("Seniors", "Accompanying Senior_formatted"),
-            ColumnConfig("Grotto<br>passes", "Quantity_formatted"),
-            ColumnConfig("Paid", "Walk-in price", formatter="format_walkin_price"),
-            ColumnConfig(
-                "Presents", "Present Type_formatted", align="left", formatter="comma_sep"
+            "Present Type": FieldConfig(extractions=["extract_present_details"]),
+            # Needed for breakdown, must occur after Accompanying Adult and Accompanying Senior
+            "Price categories": FieldConfig(
+                extractions=[
+                    "include_accompanying",
+                    "split_infant_presents",
+                    "extract_tickets",
+                ]
             ),
-            ColumnConfig("Notes", "Special Needs"),
-        ],
-        sorts=[SortConfig("Customer first name"), SortConfig("Customer last name")],
-        group_by_date=False,
-        demark_train=False,
+            # Must occur after Accompanying Adult, Senior and Price categories
+            "Product price": FieldConfig(
+                conversion="tidy_price", extractions=["calculate_walkin_price"]
+            ),
+        },
+        ticket_config=TableConfig(
+            columns=[
+                ColumnConfig("Order", "Order ID", total_method="label_3"),
+                ColumnConfig("Booking", "Booking ID"),
+                ColumnConfig("Train", "Start date_formatted", formatter="train_time"),
+                ColumnConfig(
+                    "First name",
+                    "Customer first name",
+                    align="right",
+                    formatter="title_case",
+                    total_method="order_count_2",
+                ),
+                ColumnConfig(
+                    "Last name", "Customer last name", align="left", formatter="title_case"
+                ),
+                ColumnConfig("Adults", "Accompanying Adult_formatted", total_method="sum"),
+                ColumnConfig("Seniors", "Accompanying Senior_formatted", total_method="sum"),
+                ColumnConfig("Grotto<br>passes", "Quantity_formatted", total_method="sum"),
+                ColumnConfig(
+                    "Paid",
+                    "Walk-in price",
+                    formatter="format_walkin_price",
+                    total_method="price_sum",
+                ),
+                ColumnConfig(
+                    "Presents",
+                    "Present Type_formatted",
+                    align="left",
+                    formatter="comma_sep",
+                    total_method="present_sum",
+                ),
+                ColumnConfig("Notes", "Special Needs"),
+            ],
+            sorts=[
+                SortConfig("Booking ID_formatted"),
+                SortConfig("Order ID_formatted"),
+                SortConfig("Start date_formatted"),
+            ],
+            group_by_date=True,
+            demark_train=True,
+        ),
+        alpha_config=TableConfig(
+            columns=[
+                ColumnConfig("Order", "Order ID"),
+                ColumnConfig("Booking", "Booking ID"),
+                ColumnConfig("Date", "Start date_formatted", formatter="train_date"),
+                ColumnConfig("Train", "Start date_formatted", formatter="train_time"),
+                ColumnConfig(
+                    "First name", "Customer first name", align="right", formatter="title_case"
+                ),
+                ColumnConfig(
+                    "Last name", "Customer last name", align="left", formatter="title_case"
+                ),
+                ColumnConfig("Adults", "Accompanying Adult_formatted"),
+                ColumnConfig("Seniors", "Accompanying Senior_formatted"),
+                ColumnConfig("Grotto<br>passes", "Quantity_formatted"),
+                ColumnConfig("Paid", "Walk-in price", formatter="format_walkin_price"),
+                ColumnConfig(
+                    "Presents", "Present Type_formatted", align="left", formatter="comma_sep"
+                ),
+                ColumnConfig("Notes", "Special Needs"),
+            ],
+            sorts=[SortConfig("Customer first name"), SortConfig("Customer last name")],
+            group_by_date=False,
+            demark_train=False,
+        ),
+        train_limits={
+            "10:30": 15,
+            "11:00": 20,
+            "11:30": 20,
+            "12:00": 20,
+            "12:30": 15,
+            "13:30": 20,
+            "14:00": 20,
+            "14:30": 20,
+            "15:00": 20,
+            "15:30": 20,
+            "16:00": 10,
+        },
+        presents_column="Present Type_formatted",
     ),
-    train_limits={
-        "10:30": 15,
-        "11:00": 20,
-        "11:30": 20,
-        "12:00": 20,
-        "12:30": 15,
-        "13:30": 20,
-        "14:00": 20,
-        "14:30": 20,
-        "15:00": 20,
-        "15:30": 20,
-        "16:00": 10,
-    },
-    presents_column="Present Type_formatted",
-)
+}
