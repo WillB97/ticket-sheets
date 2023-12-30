@@ -379,6 +379,7 @@ def global_vars():
             "hide_old": config["hide old orders"],
             "old_date": config["old order date"],
             "price_options": sorted(config["ticket prices"].keys(), key=len, reverse=True),
+            "presents": config["data_config"].presents_column is not None,
         },
     }
 

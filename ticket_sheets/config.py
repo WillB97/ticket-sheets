@@ -130,6 +130,8 @@ DEFAULT_CONFIG = DataConfig(
         "Product title": FieldConfig(conversion="simplify_product"),
         "Quantity": FieldConfig(conversion="parse_int"),
         "Product price": FieldConfig(conversion="tidy_price"),
+        # Needed for breakdown
+        "Price categories": FieldConfig(extractions=["extract_tickets"]),
     },
     ticket_config=TableConfig(
         columns=[
