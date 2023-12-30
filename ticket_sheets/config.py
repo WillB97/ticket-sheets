@@ -59,8 +59,8 @@ def _load_config():
     _config["hide old orders"] = _config.get("hide old orders", False)
     _config["old order date"] = _config.get("old order date", "2021-01-01")
 
-    # TODO load data config
-    _config["data_config"] = DEFAULT_CONFIGS["santa"]
+    # Load the data configs and set the active config
+    _load_data_configs()
 
     if _config.get("secret_key") is None:
         _config["secret_key"] = urandom(24).hex()
@@ -73,8 +73,101 @@ def _save_config():
     config = deepcopy(_config)
     _ = config.pop("data_config", None)
 
+    # Convert the data configs to dicts for serialization
+    _store_data_configs(config)
+
     with open(CONFIG_FILE, "w") as f:
         json.dump(config, f, indent=4)
+
+
+def _load_data_configs():
+    """Load the data config structures from the config file."""
+
+    def load_table_config(config_root):
+        return TableConfig(
+            columns=[
+                ColumnConfig(**column_config) for column_config in config_root["columns"]
+            ],
+            sorts=[SortConfig(**sort_config) for sort_config in config_root["sorts"]],
+            group_by_date=config_root.get("group_by_date", False),
+            demark_train=config_root.get("demark_train", False),
+        )
+
+    if _config.get("data_configs_dict") is None or len(_config["data_configs_dict"]) == 0:
+        _config["data_configs_dict"] = _store_data_configs({"data_configs": DEFAULT_CONFIGS})
+        _config["active_config"] = "general"
+
+    # Take configs as dicts from data_configs_dict and store them in data_configs
+    _config["data_configs"] = {
+        name: DataConfig(
+            input_format={
+                field: FieldConfig(**field_config)
+                for field, field_config in sorted(
+                    # Guarantee the order of the fields
+                    config["input_format"].items(),
+                    key=lambda x: x[1]["order"],
+                )
+            },
+            ticket_config=load_table_config(config["ticket_config"]),
+            alpha_config=load_table_config(config["alpha_config"]),
+            train_limits=config["train_limits"],
+            presents_column=config.get("presents_column"),
+        )
+        for name, config in _config["data_configs_dict"].items()
+    }
+
+    if _config.get("data_config") is None:
+        try:
+            _config["data_config"] = _config["data_configs"][_config["active_config"]]
+        except KeyError:
+            _config["active_config"] = "general"
+
+            if "general" not in _config["data_configs"]:
+                _config["data_configs"]["general"] = DEFAULT_CONFIGS["general"]
+
+            _config["data_config"] = _config["data_configs"]["general"]
+
+
+def _store_data_configs(config):
+    """Store the data config structures as dicts in the config file."""
+
+    def store_table_config(table_config):
+        return {
+            "columns": [
+                dict(column_config._asdict()) for column_config in table_config.columns
+            ],
+            "sorts": [dict(sort_config._asdict()) for sort_config in table_config.sorts],
+            "group_by_date": table_config.group_by_date,
+            "demark_train": table_config.demark_train,
+        }
+
+    config["data_configs_dict"] = {
+        name: {
+            "input_format": {
+                # Set the order of the fields for serialization
+                field: {**field_config._asdict(), "order": order}
+                for order, (field, field_config) in enumerate(data_config.input_format.items())
+            },
+            "ticket_config": store_table_config(data_config.ticket_config),
+            "alpha_config": store_table_config(data_config.alpha_config),
+            "train_limits": data_config.train_limits,
+            "presents_column": data_config.presents_column,
+        }
+        for name, data_config in config["data_configs"].items()
+    }
+
+    # Remove the data config from the config file as it is not properly serialized
+    _ = config.pop("data_configs", None)
+    _ = config.pop("data_config", None)
+
+    return config["data_configs_dict"]
+
+
+def activate_config(name: str):
+    """Activate the named configuration."""
+    _config["active_config"] = name
+    _config["data_config"] = _config["data_configs"][name]
+    _save_config()
 
 
 class ColumnConfig(NamedTuple):
