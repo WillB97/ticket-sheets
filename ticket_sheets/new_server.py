@@ -21,6 +21,7 @@ from werkzeug.exceptions import InternalServerError
 
 from flask_session import Session
 
+from ._version import __version__
 from .breakdown import (
     PRESENT_AGES,
     generate_event_breakdown,
@@ -51,6 +52,7 @@ def render_tickets_error(error, err_str=None):
             "filter": config.get("product filter", ""),
             "hide_old": config.get("hide old orders", ""),
             "old_date": config.get("old order date", ""),
+            "version": __version__,
         },
         error=error,
         error_string=err_str,
@@ -426,6 +428,7 @@ def global_vars():
     return {
         "csv_name": session.get("csv_name"),
         "csv_uploaded": session.get("csv_uploaded"),
+        "version": __version__,
         "config": {
             "csv_url": config["CSV URL"],
             "filter": config["product filter"],
