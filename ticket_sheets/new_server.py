@@ -19,6 +19,7 @@ from .breakdown import (
 )
 from .config import DataConfig, get_config, refresh_config, update_config, update_prices
 from .parse_data import apply_filters, format_for_table, get_dates, parse_bookings, parse_csv
+from .tally import generate_tally_data, render_tally_data
 
 app = Flask(__name__)
 config = get_config()
@@ -278,6 +279,55 @@ def tally_index():
     dates = get_dates(filtered_data)
 
     return render_template("tally_index.html", dates=dates, active="tally", **global_vars())
+
+
+@app.route("/tally/<path:date>")
+def tally_sheet(date):
+    """Render the present tally sheet for the given date."""
+    data = session["csv_data"].copy()
+    filtered_data = apply_filters(data, config)
+    table_configs: DataConfig = config["data_config"]
+
+    if table_configs.presents_column is None:
+        return render_tickets_error("No presents column specified")
+
+    # Get the date from the URL
+    try:
+        day_str, month_str = date.split("/")
+        day = int(day_str)
+        month = int(month_str)
+    except ValueError:
+        return render_tickets_error("Invalid date")
+
+    parsed_bookings = parse_bookings(
+        filtered_data, table_configs.input_format, config["ticket prices"]
+    )
+    tally_data_df = generate_tally_data(
+        parsed_bookings, table_configs.presents_column, day, month
+    )
+    tally_data, train_times = render_tally_data(tally_data_df, table_configs.train_limits)
+
+    # Generate summary statistics
+    tally_date = tally_data_df["date_time"].iloc[0]
+    num_presents = tally_data_df["present_count"].sum()
+    num_family = list(tally_data_df.groupby(["train_time"]).size().values)
+    num_child = list(tally_data_df.groupby("train_time")["present_count"].sum().values)
+    max_order_id = parsed_bookings["Order ID_formatted"].max()
+
+    return render_template(
+        "tally_sheet.html",
+        csv_name=session.get("csv_name"),
+        csv_uploaded=session.get("csv_uploaded"),
+        train_times=train_times,
+        tally_data=tally_data,
+        date=tally_date.strftime("%a %d %b"),
+        num_presents=num_presents,
+        exported_at=datetime.now().strftime("%d-%b %H:%M"),
+        max_order_id=max_order_id,
+        num_family=num_family,
+        num_child=num_child,
+        active="tally",
+    )
 
 
 # AJAX methods
