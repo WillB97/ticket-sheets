@@ -1,17 +1,18 @@
 """Generate the tally data for santa present tally sheets."""
 
-from typing import Dict, List
+from typing import Dict, List, Optional
 
 import pandas as pd
 
 
 def generate_tally_data(
-    data: pd.DataFrame, col_name: str, day: int, month: int
+    data: pd.DataFrame, col_name: str, day: int, month: int, needs_col: Optional[str] = None
 ) -> pd.DataFrame:
     """Generate the tally data for santa present tally sheets."""
-    present_data = data[
-        ["Order ID", "Order ID_formatted", "Start date_formatted", col_name]
-    ].sort_values(by=["Order ID_formatted", "Start date_formatted"])
+    cols = ["Order ID", "Order ID_formatted", "Start date_formatted", col_name]
+    if needs_col:
+        cols.append(needs_col)
+    present_data = data[cols].sort_values(by=["Order ID_formatted", "Start date_formatted"])
 
     # Filter to the relevant orders
     present_data = present_data[
@@ -31,8 +32,18 @@ def generate_tally_data(
     )
 
     present_data.rename(
-        columns={"Start date_formatted": "date_time", col_name: "presents"}, inplace=True
+        columns={
+            "Start date_formatted": "date_time",
+            col_name: "presents",
+            needs_col: "needs_codes",
+        },
+        inplace=True,
     )
+    if needs_col is None:
+        present_data["needs_codes"] = ""
+
+    # Strip additional comments from the needs codes
+    present_data["needs_codes"] = present_data["needs_codes"].str.split(":").str[0]
 
     return present_data
 
@@ -51,6 +62,7 @@ def render_tally_data(
                 # This is set later
                 "train_limit": False,
                 "order_id": row["Order ID"],
+                "needs_codes": row["needs_codes"],
             }
             for present in row["presents"]
         ]
@@ -59,9 +71,7 @@ def render_tally_data(
         return formatted
 
     # Use apply to create arrays of the output fields
-    data["present_formatted"] = data.apply(
-        lambda presents: format_presents(presents), axis="columns"
-    )
+    data["present_formatted"] = data.apply(format_presents, axis="columns")
 
     # Use explode to expand the arrays into rows
     tally_df = data[["train_time", "present_formatted", "Order ID"]].explode(
@@ -88,6 +98,7 @@ def render_tally_data(
         "end_family": False,
         "train_limit": False,
         "order_id": "",
+        "needs_codes": "",
     }
     # fill in missing cells
     tally_table_df = tally_table_df.map(

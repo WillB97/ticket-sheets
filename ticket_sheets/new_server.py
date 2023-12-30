@@ -358,7 +358,7 @@ def tally_sheet(date):
         filtered_data, table_configs.input_format, config["ticket prices"]
     )
     tally_data_df = generate_tally_data(
-        parsed_bookings, table_configs.presents_column, day, month
+        parsed_bookings, table_configs.presents_column, day, month, table_configs.needs_column
     )
     tally_data, train_times = render_tally_data(tally_data_df, table_configs.train_limits)
 
@@ -368,6 +368,17 @@ def tally_sheet(date):
     num_family = list(tally_data_df.groupby(["train_time"]).size().values)
     num_child = list(tally_data_df.groupby("train_time")["present_count"].sum().values)
     max_order_id = parsed_bookings["Order ID_formatted"].max()
+
+    # Generate needs summaries
+    with_needs = (
+        tally_data_df[tally_data_df["needs_codes"] != ""]
+        .groupby("train_time")["needs_codes"]
+        .apply(list)
+    )
+    # add rows for all the trains
+    with_needs = with_needs.reindex(index=train_times, fill_value=[])
+    # get the max number of orders with needs on a train
+    max_needs = with_needs.str.len().max()
 
     return render_template(
         "tally_sheet.html",
@@ -381,6 +392,8 @@ def tally_sheet(date):
         max_order_id=max_order_id,
         num_family=num_family,
         num_child=num_child,
+        with_needs=with_needs.to_dict(),
+        max_needs=max_needs,
         active="tally",
     )
 

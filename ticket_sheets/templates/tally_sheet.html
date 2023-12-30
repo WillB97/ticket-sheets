@@ -4,6 +4,17 @@
 {% block config %}{% endblock %}
 
 {% block content %}
+<style type="text/css">
+    span.extra-needs {
+        background-color: aqua;
+        border-radius: 0.25rem
+    }
+    @media print {
+        span.extra-needs {
+            background-color: rgba(0, 255, 255, 0.3);
+        }
+    }
+</style>
 <table class="w-100" style="table-layout: fixed">
     <tr>
         <td class="text-left"><b>SWINDON AND CRICKLADE RAILWAY</b></td>
@@ -37,10 +48,18 @@
                         style="border-bottom:4px solid red !important"
                     {% elif field.end_family %}
                         style="border-bottom:4px solid black !important"
-                    {% else %}
                     {% endif %}
-                    data-toggle="popover" data-content="Order ID: {{field.order_id}}" data-placement="top"
-                >{{ field.present }}</td>
+                    data-toggle="popover"
+                    data-placement="top"
+                    data-title="Order {{ field.order_id }}"
+                    data-content="Notes: {{ field.needs_codes }}"
+                >
+                {% if field.needs_codes %}
+                <span class="px-2 py-1 extra-needs">{{ field.present }}</span>
+                {% else %}
+                {{ field.present }}
+                {% endif %}
+                </td>
                 {% endfor %}
             </tr>
         {% endfor %}
@@ -58,6 +77,19 @@
             {% endfor %}
             </tr>
         </thead>
+        {# Insert needs summaries #}
+        {% for index in range(max_needs) %}
+            <tr>
+            {% if index == 0 %}
+                <th class="text-center">Needs</td>
+            {% else %}
+                <th class="text-center"></td>
+            {% endif %}
+            {% for needs in with_needs.values() %}
+                <td class="text-center">{{ needs[index] | default("") }}</td>
+            {% endfor %}
+            </tr>
+        {% endfor %}
         </tbody>
     </table>
 </div>

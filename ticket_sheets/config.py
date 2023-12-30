@@ -112,6 +112,7 @@ def _load_data_configs():
             alpha_config=load_table_config(config["alpha_config"]),
             train_limits=config["train_limits"],
             presents_column=config.get("presents_column"),
+            needs_column=config.get("needs_column"),
         )
         for name, config in _config["data_configs_dict"].items()
     }
@@ -152,6 +153,7 @@ def _store_data_configs(config):
             "alpha_config": store_table_config(data_config.alpha_config),
             "train_limits": data_config.train_limits,
             "presents_column": data_config.presents_column,
+            "needs_column": data_config.needs_column,
         }
         for name, data_config in config["data_configs"].items()
     }
@@ -212,6 +214,7 @@ class DataConfig(NamedTuple):
     alpha_config: TableConfig
     train_limits: Dict[str, int]
     presents_column: Optional[str] = None
+    needs_column: Optional[str] = None
 
 
 DEFAULT_CONFIGS = {
@@ -405,5 +408,6 @@ DEFAULT_CONFIGS = {
             "16:00": 10,
         },
         presents_column="Present Type_formatted",
+        needs_column="Special Needs",
     ),
 }
