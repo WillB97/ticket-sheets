@@ -32,9 +32,11 @@
     <table class="table table-bordered table-hover table-sm">
         <thead>
             <tr>
-                <th class="text-center" scope="col">#</th>
+            {# Force all columns to be an equal width #}
+            {% set col_width = "%.2f"|format(100 / (train_times|length + 1)) %}
+                <th class="text-center" scope="col" style="width: {{ col_width }}%;">#</th>
             {% for train in train_times %}
-                <th class="text-center" scope="col">{{ train }}</th>
+                <th class="text-center" scope="col" style="width: {{ col_width }}%;">{{ train }}</th>
             {% endfor %}
             </tr>
         </thead>
@@ -81,9 +83,9 @@
         {% for index in range(max_needs) %}
             <tr>
             {% if index == 0 %}
-                <th class="text-center">Needs</td>
+                <th class="text-center">Needs</th>
             {% else %}
-                <th class="text-center"></td>
+                <th class="text-center"></th>
             {% endif %}
             {% for needs in with_needs.values() %}
                 <td class="text-center">{{ needs[index] | default("") }}</td>
