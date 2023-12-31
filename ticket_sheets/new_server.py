@@ -415,6 +415,14 @@ def config_page():
         **global_vars(),
     )
 
+
+# TODO update config
+@app.route("/update-configs", methods=["POST"])
+def update_configs():
+    """Modity the data configs."""
+    return {"success": False}
+
+
 @app.route("/active-config", methods=["POST"])
 def update_active_config():
     """Set the active data config."""
