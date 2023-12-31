@@ -1,0 +1,24 @@
+{% extends "header.html" %}
+
+{% block pre_config %}{% endblock %}
+{% block config %}{% endblock %}
+
+{% block content %}
+{# active config select #}
+<form action="active-config" method="post" class="col-lg-6 col-md-8">
+    <div class="input-group mb-3">
+        <div class="input-group-prepend">
+            <label class="input-group-text" for="config_select">Active Config:</label>
+        </div>
+        <select class="custom-select" name="config" id="config_select">
+        {% for config_name in configs.keys() %}
+            <option {% if config_name == active_config %}selected{% endif %}>{{ config_name }}</option>
+        {% endfor %}
+        </select>
+        <div class="input-group-append">
+            <input type="submit" class="btn btn-primary" value="Set Active Config" name="submit">
+        </div>
+    </div>
+</form>
+<hr>
+{% endblock %}

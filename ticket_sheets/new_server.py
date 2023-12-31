@@ -29,7 +29,14 @@ from .breakdown import (
     summarise_presents_by_age,
     summarise_presents_by_train,
 )
-from .config import DataConfig, get_config, refresh_config, update_config, update_prices
+from .config import (
+    DataConfig,
+    activate_config,
+    get_config,
+    refresh_config,
+    update_config,
+    update_prices,
+)
 from .parse_data import apply_filters, format_for_table, get_dates, parse_bookings, parse_csv
 from .tally import generate_tally_data, render_tally_data
 
@@ -397,6 +404,24 @@ def tally_sheet(date):
     )
 
 
+@app.route("/configs", methods=["GET"])
+def config_page():
+    """Render the config page."""
+    return render_template(
+        "config.html",
+        active="config",
+        active_config=config["active_config"],
+        configs=config["data_configs"],
+        **global_vars(),
+    )
+
+@app.route("/active-config", methods=["POST"])
+def update_active_config():
+    """Set the active data config."""
+    activate_config(request.form.get("config"))
+    return redirect(request.referrer)
+
+
 # AJAX methods
 @app.route("/prices", methods=["GET"])
 def get_event_price():
@@ -448,6 +473,7 @@ def global_vars():
             "old_date": config["old order date"],
             "price_options": sorted(config["ticket prices"].keys(), key=len, reverse=True),
             "presents": config["data_config"].presents_column is not None,
+            "active_config": config["active_config"],
         },
     }
 

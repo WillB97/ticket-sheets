@@ -167,6 +167,8 @@ def _store_data_configs(config):
 
 def activate_config(name: str):
     """Activate the named configuration."""
+    if name not in _config["data_configs"]:
+        raise ValueError(f"Invalid config name {name}")
     _config["active_config"] = name
     _config["data_config"] = _config["data_configs"][name]
     _save_config()
