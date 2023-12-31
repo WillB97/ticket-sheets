@@ -21,4 +21,187 @@
     </div>
 </form>
 <hr>
+<div class="row">
+    <div class="col-3">
+        <h3>Configs</h3>
+        <div class="nav flex-column nav-pills" id="v-pills-tab" role="tablist" aria-orientation="vertical">
+        {# pill for each config #}
+        {% for config_name in configs.keys() %}
+            <a
+                class="nav-link {% if loop.first %}active{% endif %}"
+                id="v-pills-{{ config_name }}-tab"
+                data-toggle="pill"
+                href="#v-pills-{{ config_name }}"
+                role="tab"
+                aria-controls="v-pills-{{ config_name }}"
+                aria-selected="false"
+            >{{ config_name }}</a>
+        {% endfor %}
+        </div>
+    </div>
+    <div class="col-9">
+        <div class="tab-content" id="v-pills-tabContent">
+        {% for config_name, config_data in configs.items() %}
+            <div
+                class="tab-pane fade {% if loop.first %}show active{% endif %}"
+                id="v-pills-{{ config_name }}"
+                role="tabpanel"
+                aria-labelledby="v-pills-{{ config_name }}-tab"
+            >
+                <h4>{{ config_name }}</h4>
+                {# save/submit button #}
+                <ul class="nav nav-tabs" id="myTab" role="tablist">
+                    {% for config_tab in ['general', 'inputs', 'order-table', 'alpha-table', 'train-limits'] %}
+                        <li class="nav-item">
+                            <a
+                                class="nav-link {% if loop.first %}active{% endif %}"
+                                id="{{ config_tab }}-tab"
+                                data-toggle="tab" role="tab"
+                                href="#{{ config_tab }}-{{config_name|urlencode}}"
+                                aria-controls="{{ config_tab }}-{{config_name}}"
+                                aria-selected="{% if loop.first %}true{% else %}false{% endif %}"
+                            >{{ config_tab|replace('-', ' ')|title }}</a>
+                        </li>
+                    {% endfor %}
+                </ul>
+                <div class="tab-content" id="myTabContent">
+                    <div class="tab-pane fade show active" id="general-{{config_name|urlencode}}" role="tabpanel" aria-labelledby="general-tab">
+                        <table>
+                            <tr>
+                                <th>Config name</th>
+                                <td>{{ config_name }}</td>
+                            </tr>
+                            <tr>
+                                <th>Present column</th>
+                                <td>{{ config_data.presents_column }}</td>
+                            </tr>
+                            <tr>
+                                <th>Needs column</th>
+                                <td>{{ config_data.needs_column }}</td>
+                            </tr>
+                        </table>
+                        {# copy config form #}
+                    </div>
+
+                    <div class="tab-pane fade" id="inputs-{{config_name|urlencode}}" role="tabpanel" aria-labelledby="inputs-tab">
+                        <table class="table table-bordered">
+                            <tr>
+                                <th>Column Name</th>
+                                <th>Conversion</th>
+                                <th>Extractions</th>
+                            </tr>
+                        {% for input_name, input_data in config_data.input_format.items() %}
+                            <tr>
+                                <td>{{ input_name }}</td>
+                                <td>{{ input_data.conversion }}</td>
+                                <td>
+                                    <ul style="list-style-type: none;margin-bottom: 0rem;padding-inline-start: 0px;">
+                                    {% for extraction in input_data.extractions %}
+                                        <li>{{ extraction }}</li>
+                                    {% endfor %}
+                                    </ul>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                        </table>
+                    </div>
+
+                    <div class="tab-pane fade" id="order-table-{{config_name|urlencode}}" role="tabpanel" aria-labelledby="order-table-tab">
+                        <h5>Columns</h5>
+                        <table class="table table-bordered">
+                            <tr>
+                                <th>Output Title</th>
+                                <th>Input Column</th>
+                                <th>Alignment</th>
+                                <th>Formatter</th>
+                                <th>Total Method</th>
+                            </tr>
+                        {% for column in config_data.ticket_config.columns %}
+                            <tr>
+                                <td>{{ column.title }}</td>
+                                <td>{{ column.input_column }}</td>
+                                <td>{{ column.align }}</td>
+                                <td>{{ column.formatter }}</td>
+                                <td>{{ column.total_method }}</td>
+                            </tr>
+                        {% endfor %}
+                        </table>
+                        <h5>Sorts</h5>
+                        <table class="table table-bordered">
+                            <tr>
+                                <th>Column</th>
+                                <th>Direction</th>
+                            </tr>
+                        {% for sort in config_data.ticket_config.sorts %}
+                            <tr>
+                                <td>{{ sort.column }}</td>
+                                <td>{% if sort.direction %}ascending{% else %}descending{% endif %}</td>
+                            </tr>
+                        {% endfor %}
+                        </table>
+                        <ul style="list-style-type: none;margin-bottom: 0rem;padding-inline-start: 0px;">
+                            <li>Group by date: {{config_data.ticket_config.group_by_date}}</li>
+                            <li>Demark trains: {{config_data.ticket_config.demark_train}}</li>
+                        </ul>
+                    </div>
+
+                    <div class="tab-pane fade" id="alpha-table-{{config_name|urlencode}}" role="tabpanel" aria-labelledby="alpha-table-tab">
+                        <h5>Columns</h5>
+                        <table class="table table-bordered">
+                            <tr>
+                                <th>Output Title</th>
+                                <th>Input Column</th>
+                                <th>Alignment</th>
+                                <th>Formatter</th>
+                                <th>Total Method</th>
+                            </tr>
+                        {% for column in config_data.alpha_config.columns %}
+                            <tr>
+                                <td>{{ column.title }}</td>
+                                <td>{{ column.input_column }}</td>
+                                <td>{{ column.align }}</td>
+                                <td>{{ column.formatter }}</td>
+                                <td>{{ column.total_method }}</td>
+                            </tr>
+                        {% endfor %}
+                        </table>
+                        <h5>Sorts</h5>
+                        <table class="table table-bordered">
+                            <tr>
+                                <th>Column</th>
+                                <th>Direction</th>
+                            </tr>
+                        {% for sort in config_data.alpha_config.sorts %}
+                            <tr>
+                                <td>{{ sort.column }}</td>
+                                <td>{% if sort.direction %}ascending{% else %}descending{% endif %}</td>
+                            </tr>
+                        {% endfor %}
+                        </table>
+                        <ul style="list-style-type: none;margin-bottom: 0rem;padding-inline-start: 0px;">
+                            <li>Group by date: {{config_data.alpha_config.group_by_date}}</li>
+                            <li>Demark trains: {{config_data.alpha_config.demark_train}}</li>
+                        </ul>
+                    </div>
+
+                    <div class="tab-pane fade" id="train-limits-{{config_name|urlencode}}" role="tabpanel" aria-labelledby="train-limits-tab">
+                        <table class="table table-bordered">
+                            <tr>
+                                <th>Train</th>
+                                <th>Limit</th>
+                            </tr>
+                        {% for train, limit in config_data.train_limits.items() %}
+                            <tr>
+                                <td>{{ train }}</td>
+                                <td>{{ limit }}</td>
+                            </tr>
+                        {% endfor %}
+                        </table>
+                    </div>
+                </div>
+            </div>
+        {% endfor %}
+        </div>
+    </div>
+  </div>
 {% endblock %}
