@@ -6,8 +6,8 @@ authors = [{name = "Will Barber"}]
 dynamic = ["version"]
 requires-python = ">=3.8"
 dependencies = [
-    "flask",
-    "Flask-Session",
+    "flask ==2.3.3",
+    "Flask-Session ==0.4.0",
     "pandas ==2.0.3",
 ]
 
