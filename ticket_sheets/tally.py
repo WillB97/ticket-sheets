@@ -101,7 +101,7 @@ def render_tally_data(
         "needs_codes": "",
     }
     # fill in missing cells
-    tally_table_df = tally_table_df.map(
+    tally_table_df = tally_table_df.applymap(
         lambda x: default_cell_value.copy() if pd.isna(x) else x
     )
 

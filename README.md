@@ -33,11 +33,11 @@ cd ticket-sheets
 pip install -e .
 ```
 
-Then run the application using the `ticket-sheets` command to run the server in debug mode.
+Then run the application using the `ticket_server` command to run the server in debug mode.
 This will reload the server when changes are made to the source code.
 
 ```bash
-ticket-sheets
+ticket_server
 ```
 
 This will create a file called `config.json` and a folder called `flask_session` in the current directory.

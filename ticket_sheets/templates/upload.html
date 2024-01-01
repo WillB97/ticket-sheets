@@ -9,13 +9,13 @@
     <h3>Adjust Config:</h3>
     <div class="input-group mb-2">
         <label for="csvUrl" class="mr-sm-2">CSV URL:</label>
-        <input class="form-control mb-2 mr-sm-2" type="url" name="csvUrl" id="csvUrl" value="{{csv_url|default('')}}">
+        <input class="form-control mb-2 mr-sm-2" type="url" name="csvUrl" id="csvUrl" value="{{config.csv_url|default('')}}">
         <input type="submit" class="btn btn-primary mb-2" value="Update URL" name="submit">
     </div>
 </form>
 
 <div>
-    <a style="margin:auto" type="button" class="btn btn-primary btn-block" href="{{csv_url|default('')}}" target="_blank">
+    <a style="margin:auto" type="button" class="btn btn-primary btn-block" href="{{config.csv_url|default('')}}" target="_blank">
         Download Raw CSV
     </a>
 </div>
