@@ -30,6 +30,8 @@ To run the application in development mode, install the application using pip in
 ```bash
 git clone https://github.com/WillB97/ticket-sheets
 cd ticket-sheets
+python -m venv venv
+source venv/bin/activate
 pip install -e .
 ```
 
