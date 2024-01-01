@@ -7,8 +7,9 @@ dynamic = ["version"]
 requires-python = ">=3.8"
 dependencies = [
     "flask ==2.3.3",
-    "Flask-Session ==0.4.0",
+    "Flask-Session ==0.5.0",
     "pandas ==2.0.3",
+    "Werkzeug ==2.3.7"
 ]
 
 [project.scripts]
