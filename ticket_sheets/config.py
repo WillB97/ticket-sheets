@@ -3,6 +3,7 @@
 import json
 from copy import deepcopy
 from os import urandom
+from pathlib import Path
 from typing import Dict, List, NamedTuple, Optional, Tuple
 
 CONFIG_FILE = "config.json"
@@ -48,6 +49,10 @@ def _load_config():
 
     secret_key is generated if it does not exist.
     """
+    if not Path(CONFIG_FILE).exists():
+        # Create the config file if it does not exist
+        Path(CONFIG_FILE).write_text("{}")
+
     with open(CONFIG_FILE, "r") as f:
         _config.clear()
         _config.update(json.load(f))
