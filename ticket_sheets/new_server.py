@@ -372,8 +372,21 @@ def tally_sheet(date):
     # Generate summary statistics
     tally_date = tally_data_df["date_time"].iloc[0]
     num_presents = tally_data_df["present_count"].sum()
-    num_family = list(tally_data_df.groupby(["train_time"]).size().values)
-    num_child = list(tally_data_df.groupby("train_time")["present_count"].sum().values)
+
+    # And fill in missing train times
+    num_family_df = (
+        tally_data_df.groupby(["train_time"])
+        .size()
+        .reindex(list(table_configs.train_limits.keys()), fill_value=0)
+    )
+    num_child_df = (
+        tally_data_df.groupby("train_time")["present_count"]
+        .sum()
+        .reindex(list(table_configs.train_limits.keys()), fill_value=0)
+    )
+
+    num_family = list(num_family_df.values)
+    num_child = list(num_child_df.values)
     max_order_id = parsed_bookings["Order ID_formatted"].max()
 
     # Generate needs summaries
