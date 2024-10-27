@@ -281,6 +281,7 @@ def summarise_presents_by_train(
     # fill in missing train times
     present_table = present_table.reindex(columns=train_times, fill_value=0)
     present_table.fillna(0, inplace=True)
+    present_table = present_table.astype("int")
 
     return present_table
 
