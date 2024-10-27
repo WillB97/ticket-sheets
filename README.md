@@ -15,6 +15,7 @@ pip install .
 Then install the application as a service using the provided systemd service file.
 
 ```bash
+pip install gunicorn
 sudo cp ticket-sheets.service /etc/systemd/system/
 sudo systemctl daemon-reload
 sudo systemctl enable --now ticket-sheets

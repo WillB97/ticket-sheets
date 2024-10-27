@@ -5,7 +5,7 @@ After=network.target
 [Service]
 Group=www-data
 WorkingDirectory=/home/ubuntu/ticket-sheets/
-ExecStart=/usr/local/bin/gunicorn --workers 3 --bind unix:ticket-server.sock -m 007 ticket_server.wsgi:app
+ExecStart=/usr/local/bin/gunicorn --workers 3 --bind unix:ticket-server.sock -m 007 ticket_sheets.wsgi:app
 Restart=on-failure
 RestartSec=20s
 
