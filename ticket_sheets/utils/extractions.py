@@ -256,3 +256,24 @@ def calculate_walkin_price(
     data["Walk-in price"] = data.apply(
         calculate_price, axis="columns", args=(col_name,)
     ).astype("float")
+
+
+def merge_resources(data: pd.DataFrame, col_name: str) -> None:
+    """
+    Merge the resources into the ticket data.
+
+    This function adds the resources to the ticket data.
+    """
+
+    def reformat_and_merge(row: pd.Series, col_name: str) -> str:
+        """Reformat and merge the resources into the ticket data."""
+        resources = row["Resources for the booking"]
+        # Reformat to match the ticket data
+        resources = resources.replace(" x", ": ")  # Non-breaking space  # noqa: RUF001
+
+        # Merge the resources with the ticket data
+        return "\n".join([row[col_name], resources])
+
+    if "Resources for the booking" in data.columns:
+        # Merge the resources into the ticket data
+        data[col_name] = data.apply(reformat_and_merge, axis="columns", args=(col_name,))

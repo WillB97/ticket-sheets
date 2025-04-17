@@ -235,7 +235,9 @@ DEFAULT_CONFIGS = {
             "Quantity": FieldConfig(conversion="parse_int"),
             "Product price": FieldConfig(conversion="tidy_price"),
             # Needed for breakdown
-            "Price categories": FieldConfig(extractions=["extract_tickets"]),
+            "Price categories": FieldConfig(
+                extractions=["merge_resources", "extract_tickets"]
+            ),
         },
         ticket_config=TableConfig(
             columns=[
