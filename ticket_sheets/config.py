@@ -253,8 +253,6 @@ DEFAULT_CONFIGS = {
                     "Last name", "Customer last name", align="left", formatter="title_case"
                 ),
                 ColumnConfig("Qty.", "Quantity_formatted", total_method="sum"),
-                ColumnConfig("Issued", None),
-                ColumnConfig("Infants", None),
                 ColumnConfig(
                     "Paid",
                     "Product price_formatted",
