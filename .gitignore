@@ -4,3 +4,4 @@ flask_session
 venv
 .vscode
 _version.py
+*.egg_info
