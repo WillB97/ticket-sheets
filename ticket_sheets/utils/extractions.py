@@ -21,6 +21,9 @@ def extract_tickets(data: pd.DataFrame, col_name: str) -> None:
     This function adds a column for each ticket type, with the quantity of that ticket.
     Generates columns in the format: "ticket_<ticket name>"
     """
+    # Avoid running apply on empty dataframes
+    if data.empty:
+        return
 
     def extract_ticket(row: pd.Series, col_name: str) -> Dict[str, int]:
         """Extract the ticket name and quantity from a ticket string."""
@@ -55,6 +58,9 @@ def extract_present_details(data: pd.DataFrame, col_name: str) -> None:
 
     Also takes in ages from the "Child Age *" fields.
     """
+    # Avoid running apply on empty dataframes
+    if data.empty:
+        return
 
     def format_present(row: pd.Series) -> str:
         """Format the present value."""
@@ -154,6 +160,9 @@ def include_accompanying(
     senior_col: str = "Accompanying Senior_formatted",
 ) -> None:
     """Add accompanying adult and senior to the price categories field."""
+    # Avoid running apply on empty dataframes
+    if data.empty:
+        return
 
     def add_accompanying(row: pd.Series, col_name: str) -> str:
         """Add accompanying adult and senior to the price categories field."""
@@ -180,6 +189,9 @@ def split_infant_presents(
     data: pd.DataFrame, col_name: str, present_col: str = "Present Type_formatted"
 ) -> None:
     """Split infant present into separate infant ticket in price categories."""
+    # Avoid running apply on empty dataframes
+    if data.empty:
+        return
 
     def split_infant_present(row: pd.Series, category_col: str, present_col: str) -> str:
         """Split infant present into separate infant ticket in price categories."""
@@ -226,6 +238,10 @@ def calculate_walkin_price(
     price_options = [
         (re.compile(name, re.IGNORECASE), prices) for name, prices in price_options
     ]
+
+    # Avoid running apply on empty dataframes
+    if data.empty:
+        return
 
     def calculate_price(row: pd.Series, col_name: str) -> float:
         """Calculate the price for a row, based on the Product title."""
@@ -275,5 +291,9 @@ def merge_resources(data: pd.DataFrame, col_name: str) -> None:
         return "\n".join([row[col_name], resources])
 
     if "Resources for the booking" in data.columns:
+        # Avoid running apply on empty dataframes
+        if data.empty:
+            return
+
         # Merge the resources into the ticket data
         data[col_name] = data.apply(reformat_and_merge, axis="columns", args=(col_name,))
